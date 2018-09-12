@@ -18,8 +18,9 @@ START:
     mov sp, 0xFFFE
     mov bp, 0xFFFE
 
-
-; ---clean screen---
+;;;;;;;;;;;;;;;;;;;;;;
+; ---clean screen--- ;
+;;;;;;;;;;;;;;;;;;;;;;
 
     mov si,    0
     
@@ -33,13 +34,19 @@ START:
     jl .SCREENCLEARLOOP
 
 
-; ---print message on screen---
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ---print message on screen--- ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; print start message
 
     push MESSAGE1
     push 0
     push 0
     call PRINTMESSAGE
     add sp, 6
+
+; print current time
 
     push MESSAGE2
     push 1
@@ -55,7 +62,11 @@ START:
     jmp $
 
 
-; ---Function code---
+;;;;;;;;;;;;;;;;;;;;;;;
+; ---Function code--- ;
+;;;;;;;;;;;;;;;;;;;;;;;
+
+; print message fuction
 
 PRINTMESSAGE:
     push bp
@@ -104,6 +115,8 @@ PRINTMESSAGE:
     pop bp
     ret
 
+; print current time (HH:MM:SS)
+
 PRINTTIME:
     push bp
     mov bp, sp
@@ -137,18 +150,15 @@ PRINTTIME:
     shr al, 0x4
     add al, 0x30
     mov byte [ es: di ], al
-    add si, 1
     add di, 2
 
     mov al, ch
     and al, 0x0F
     add al, 0x30
     mov byte [ es: di ], al
-    add si, 1
     add di, 2
 
     mov byte [ es: di ], ':'
-    add si, 1
     add di, 2
 
     mov al, cl
@@ -156,18 +166,15 @@ PRINTTIME:
     shr al, 0x4
     add al, 0x30
     mov byte [ es: di ], al
-    add si, 1
     add di, 2
 
     mov al, cl
     and al, 0x0F
     add al, 0x30
     mov byte [ es: di ], al
-    add si, 1
     add di, 2
 
     mov byte [ es: di ], ':'
-    add si, 1
     add di, 2
 
     mov al, dh
@@ -175,14 +182,12 @@ PRINTTIME:
     shr al, 0x4
     add al, 0x30
     mov byte [ es: di ], al
-    add si, 1
     add di, 2
 
     mov al, dh
     and al, 0x0F
     add al, 0x30
     mov byte [ es: di ], al
-    add si, 1
     add di, 2
 
     pop dx
@@ -195,6 +200,9 @@ PRINTTIME:
     ret
 
 
+;;;;;;;;;;;;;;;;;;;;
+; ---other data--- ;
+;;;;;;;;;;;;;;;;;;;;
 
 MESSAGE1:    db 'MINT64 OS Boot Loader Start~!!', 0
 MESSAGE2:   db 'Current time: ', 0
