@@ -54,7 +54,7 @@ PROTECTEDMODE:
     
     ; ȭ�鿡 ��ȣ ���� ��ȯ�Ǿ��ٴ� �޽����� ��´�.
     push ( SWITCHSUCCESSMESSAGE - $$ + 0x10000 )    ; ����� �޽����� ��巹���� ���ÿ� ����
-    push 2                                          ; ȭ�� Y ��ǥ(2)�� ���ÿ� ����
+    push 3                                          ; ȭ�� Y ��ǥ(2)�� ���ÿ� ����
     push 0                                          ; ȭ�� X ��ǥ(0)�� ���ÿ� ����
     call PRINTMESSAGE                               ; PRINTMESSAGE �Լ� ȣ��
     add esp, 12                                     ; ������ �Ķ���� ����

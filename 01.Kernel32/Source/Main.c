@@ -3,7 +3,7 @@
  *  date    2008/12/14
  *  author  kkamagui 
  *          Copyright(c)2008 All rights reserved by kkamagui
- *  brief   C ¾ð¾î·Î ÀÛ¼ºµÈ Ä¿³ÎÀÇ ¿£Æ®¸® Æ÷ÀÎÆ® ÆÄÀÏ
+ *  brief   C ï¿½ï¿½ï¿½ï¿½ ï¿½Û¼ï¿½ï¿½ï¿½ Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
  */
 
 #include "Types.h"
@@ -11,28 +11,28 @@
 void kPrintString( int iX, int iY, const char* pcString );
 
 /**
- *  ¾Æ·¡ ÇÔ¼ö´Â C ¾ð¾î Ä¿³ÎÀÇ ½ÃÀÛ ºÎºÐÀÓ
- *      ¹Ýµå½Ã ´Ù¸¥ ÇÔ¼öµé º¸´Ù °¡Àå ¾ÕÂÊ¿¡ Á¸ÀçÇØ¾ß ÇÔ
+ *  ï¿½Æ·ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ C ï¿½ï¿½ï¿½ Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ï¿½
+ *      ï¿½Ýµï¿½ï¿½ ï¿½Ù¸ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ ï¿½ï¿½
  */
 void Main( void )
 {
-    kPrintString( 0, 3, "C Language Kernel Started~!!!" );
+    kPrintString( 0, 4, "C Language Kernel Started~!!!" );
 
     while( 1 ) ;
 }
 
 /**
- *  ¹®ÀÚ¿­À» X, Y À§Ä¡¿¡ Ãâ·Â
+ *  ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ X, Y ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½
  */
 void kPrintString( int iX, int iY, const char* pcString )
 {
     CHARACTER* pstScreen = ( CHARACTER* ) 0xB8000;
     int i;
     
-    // X, Y ÁÂÇ¥¸¦ ÀÌ¿ëÇØ¼­ ¹®ÀÚ¿­À» Ãâ·ÂÇÒ ¾îµå·¹½º¸¦ °è»ê
+    // X, Y ï¿½ï¿½Ç¥ï¿½ï¿½ ï¿½Ì¿ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½å·¹ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
     pstScreen += ( iY * 80 ) + iX;
     
-    // NULLÀÌ ³ª¿Ã ¶§±îÁö ¹®ÀÚ¿­ Ãâ·Â
+    // NULLï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½ ï¿½ï¿½ï¿½
     for( i = 0 ; pcString[ i ] != 0 ; i++ )
     {
         pstScreen[ i ].bCharactor = pcString[ i ];
