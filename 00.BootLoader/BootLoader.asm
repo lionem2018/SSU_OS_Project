@@ -5,7 +5,7 @@ SECTION .text
 
 jmp 0x07C0:START
 
-TOTALSECTORCOUNT:   dw  1024    
+TOTALSECTORCOUNT:   dw  0x02
 
 START:
     mov ax, 0x07C0  
@@ -160,7 +160,7 @@ READDATA:
 
 READEND:
     push LOADINGCOMPLETEMESSAGE    
-    push 2                         
+    push 2                      
     push 20                        
     call PRINTMESSAGE              
     add  sp, 6                     
@@ -169,7 +169,7 @@ READEND:
     
 HANDLEDISKERROR:
     push DISKERRORMESSAGE  
-    push 2                 
+    push 2                
     push 20                
     call PRINTMESSAGE      
     
