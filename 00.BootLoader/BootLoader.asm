@@ -157,17 +157,51 @@ READEND:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-READHASHVALUE:
-    mov ax, 0x1000                 
-    mov fs, ax
+;READHASHVALUE:
+;    mov ax, 0x1000                 
+;    mov fs, ax
 
-    mov bx, word [ fs: 0x00 ]
-    mov cx, word [ fs: 0x02 ]
+;    mov bx, word [ fs: 0x00 ]
+;    mov cx, word [ fs: 0x02 ]
+
+;PRINTBINARIES:
+;    mov di, 320;
+;    mov ah, bl
+;    call PRINTONEBINARY
+
+;    mov ah, bh
+;    call PRINTONEBINARY
+
+;    mov ah, cl
+;    call PRINTONEBINARY
+
+;    mov ah, ch
+;    call PRINTONEBINARY
+
+READYTOCALCULATEHASH:
+    mov ax, 0x1000
+    mov fs, ax
+    mov di, 0x00
+
+    mov bx, 0x00
+    mov cx, 0x00
+
+CALCULATEHASHLOOP:
+
+    xor bl, byte [ fs: di ]
+    add di, 0x01
+    xor bh, byte [ fs: di ]
+    add di, 0x01
+    xor cl, byte [ fs: di ]
+    add di, 0x01
+    xor ch, byte [ fs: di ]
+    add di, 0x01
     
-    mov di, 320;
+    cmp di, 1024
+    jb CALCULATEHASHLOOP
 
 PRINTBINARIES:
-    
+    mov di, 320
     mov ah, bl
     call PRINTONEBINARY
 
@@ -181,6 +215,7 @@ PRINTBINARIES:
     call PRINTONEBINARY
 
     jmp 0x1000:0x0000
+    
 
 PRINTONEBINARY:
     push bp       
