@@ -155,84 +155,82 @@ READEND:
     call PRINTMESSAGE              
     add  sp, 6 
 
-CHECKIMAGE:
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+READHASHVALUE:
     mov ax, 0x1000                 
     mov fs, ax
-    
-    mov ax, 0xB800
-    mov es, ax
-    mov di, 320
 
     mov bx, word [ fs: 0x00 ]
     mov cx, word [ fs: 0x02 ]
-
-    mov al, bl
-    and al, 0xF0
-    shr al, 0x4
-    add al, 0x30
-    cmp al, '9'
-    jne istrue
-    jmp nextinstr
-istrue: 
-    add al, 0x27
-
-nextinstr:
-    mov byte [ es: di ], al
-    add di, 2
-
-    mov al, bl
-    and al, 0x0F
-    add al, 0x30
-    cmp al, '9'
-    jne istruee
-    jmp nextinstrr
-istruee: 
-    add al, 0x27
     
-nextinstrr:
-    mov byte [ es: di ], al
-    add di, 2
+    mov di, 320;
 
-    mov al, bh
-    and al, 0xF0
-    shr al, 0x4
-    add al, 0x30
-    mov byte [ es: di ], al
-    add di, 2
+PRINTBINARIES:
+    
+    mov ah, bl
+    call PRINTONEBINARY
 
-    mov al, bh
-    and al, 0x0F
-    add al, 0x30
-    mov byte [ es: di ], al
-    add di, 2
+    mov ah, bh
+    call PRINTONEBINARY
 
-    mov al, cl
-    and al, 0xF0
-    shr al, 0x4
-    add al, 0x30
-    mov byte [ es: di ], al
-    add di, 2
+    mov ah, cl
+    call PRINTONEBINARY
 
-    mov al, cl
-    and al, 0x0F
-    add al, 0x30
-    mov byte [ es: di ], al
-    add di, 2
-
-    mov al, ch
-    and al, 0xF0
-    shr al, 0x4
-    add al, 0x30
-    mov byte [ es: di ], al
-    add di, 2
-
-    mov al, ch
-    and al, 0x0F
-    add al, 0x57
-    mov byte [ es: di ], al
-    add di, 2
+    mov ah, ch
+    call PRINTONEBINARY
 
     jmp 0x1000:0x0000
+
+PRINTONEBINARY:
+    push bp       
+    mov bp, sp    
+            
+    push es       
+    push si             
+    push cx
+    push dx
+
+    mov dx, 0xB800
+    mov es, dx
+
+    mov al, ah
+    and al, 0xF0
+    shr al, 0x4
+    add al, 0x30
+    cmp al, '9'
+    ja .isUpperBig
+    jmp .printUpperBinary
+
+.isUpperBig: 
+    add al, 0x27
+
+.printUpperBinary:
+    mov byte [ es: di ], al
+    add di, 2
+
+    mov al, ah
+    and al, 0x0F
+    add al, 0x30
+    cmp al, '9'
+    ja .isLowerBig
+    jmp .printLowerBinary
+
+.isLowerBig: 
+    add al, 0x27
+
+.printLowerBinary:
+    mov byte [ es: di ], al
+    add di, 2
+
+    pop dx      
+    pop cx            
+    pop si      
+    pop es
+    pop bp      
+    ret 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     
 HANDLEDISKERROR:
     push DISKERRORMESSAGE  
