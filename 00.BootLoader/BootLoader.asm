@@ -37,78 +37,68 @@ START:
     call PRINTMESSAGE           
     add  sp, 6                  
     
-    push MESSAGE2            
-    push 1                                            
-    push 0                                            
-    call PRINTMESSAGE                                     
-    add  sp, 6                  
+;    push MESSAGE2            
+;    push 1                                            
+;    push 0                                            
+;    call PRINTMESSAGE                                     
+;    add  sp, 6                  
 
-;;;;;;;;;
-    mov ax, 0xB800
-    mov es, ax
+;    mov ax, 0xB800
+;    mov es, ax
 
-    mov ax, 1
-    mov si, 160
-    mul si
-    mov di, ax
+;    mov di, 160
+;    add di, 28
 
-    mov ax, 14
-    mov si, 2
-    mul si
-    add di, ax
+;    mov ah, 2h
+;    int 1Ah
 
-    mov ah, 2h
-    int 1Ah
+;    mov al, ch
+;    and al, 0xF0
+;    shr al, 0x4
+;    add al, 0x30
+;    mov byte [ es: di ], al
+;    add di, 2
 
-    mov ah, 0x0E
-    mov al, ch
-    and al, 0xF0
-    shr al, 0x4
-    add al, 0x30
-    mov byte [ es: di ], al
-    add di, 2
+;    mov al, ch
+;    and al, 0x0F
+;    add al, 0x30
+;    mov byte [ es: di ], al
+;    add di, 2
 
-    mov al, ch
-    and al, 0x0F
-    add al, 0x30
-    mov byte [ es: di ], al
-    add di, 2
+;    mov byte [ es: di ], ':'
+;    add di, 2
 
-    mov byte [ es: di ], ':'
-    add di, 2
+;    mov al, cl
+;    and al, 0xF0
+;    shr al, 0x4
+;    add al, 0x30
+;    mov byte [ es: di ], al
+;    add di, 2
 
-    mov al, cl
-    and al, 0xF0
-    shr al, 0x4
-    add al, 0x30
-    mov byte [ es: di ], al
-    add di, 2
+;    mov al, cl
+;    and al, 0x0F
+;    add al, 0x30
+;    mov byte [ es: di ], al
+;    add di, 2
 
-    mov al, cl
-    and al, 0x0F
-    add al, 0x30
-    mov byte [ es: di ], al
-    add di, 2
+;    mov byte [ es: di ], ':'
+;    add di, 2
 
-    mov byte [ es: di ], ':'
-    add di, 2
+;    mov al, dh
+;    and al, 0xF0
+;    shr al, 0x4
+;    add al, 0x30
+;    mov byte [ es: di ], al
+;    add di, 2
 
-    mov al, dh
-    and al, 0xF0
-    shr al, 0x4
-    add al, 0x30
-    mov byte [ es: di ], al
-    add di, 2
-
-    mov al, dh
-    and al, 0x0F
-    add al, 0x30
-    mov byte [ es: di ], al
-    add di, 2
-;;;;;;
+;    mov al, dh
+;    and al, 0x0F
+;    add al, 0x30
+;    mov byte [ es: di ], al
+;    add di, 2
 
     push IMAGELOADINGMESSAGE         
-    push 2                           
+    push 1                           
     push 0                           
     call PRINTMESSAGE                
     add  sp, 6                       
@@ -160,16 +150,93 @@ READDATA:
 
 READEND:
     push LOADINGCOMPLETEMESSAGE    
-    push 2                      
+    push 1                      
     push 20                        
     call PRINTMESSAGE              
-    add  sp, 6                     
+    add  sp, 6 
+
+CHECKIMAGE:
+    mov ax, 0x1000                 
+    mov fs, ax
+    
+    mov ax, 0xB800
+    mov es, ax
+    mov di, 320
+
+    mov bx, word [ fs: 0x00 ]
+    mov cx, word [ fs: 0x02 ]
+
+    mov al, bl
+    and al, 0xF0
+    shr al, 0x4
+    add al, 0x30
+    cmp al, '9'
+    jne istrue
+    jmp nextinstr
+istrue: 
+    add al, 0x27
+
+nextinstr:
+    mov byte [ es: di ], al
+    add di, 2
+
+    mov al, bl
+    and al, 0x0F
+    add al, 0x30
+    cmp al, '9'
+    jne istruee
+    jmp nextinstrr
+istruee: 
+    add al, 0x27
+    
+nextinstrr:
+    mov byte [ es: di ], al
+    add di, 2
+
+    mov al, bh
+    and al, 0xF0
+    shr al, 0x4
+    add al, 0x30
+    mov byte [ es: di ], al
+    add di, 2
+
+    mov al, bh
+    and al, 0x0F
+    add al, 0x30
+    mov byte [ es: di ], al
+    add di, 2
+
+    mov al, cl
+    and al, 0xF0
+    shr al, 0x4
+    add al, 0x30
+    mov byte [ es: di ], al
+    add di, 2
+
+    mov al, cl
+    and al, 0x0F
+    add al, 0x30
+    mov byte [ es: di ], al
+    add di, 2
+
+    mov al, ch
+    and al, 0xF0
+    shr al, 0x4
+    add al, 0x30
+    mov byte [ es: di ], al
+    add di, 2
+
+    mov al, ch
+    and al, 0x0F
+    add al, 0x57
+    mov byte [ es: di ], al
+    add di, 2
 
     jmp 0x1000:0x0000
     
 HANDLEDISKERROR:
     push DISKERRORMESSAGE  
-    push 2                
+    push 1                
     push 20                
     call PRINTMESSAGE      
     
@@ -187,7 +254,6 @@ PRINTMESSAGE:
     push dx
     
     mov ax, 0xB800          
-                
     mov es, ax              
     
     mov ax, word [ bp + 6 ]   
@@ -205,17 +271,13 @@ PRINTMESSAGE:
 .MESSAGELOOP:               
     mov cl, byte [ si ]     
                    
-    
     cmp cl, 0               
-    je .MESSAGEEND          
-                            
+    je .MESSAGEEND      
 
     mov byte [ es: di ], cl 
     
     add si, 1               
-    add di, 2               
-                            
-                            
+    add di, 2           
 
     jmp .MESSAGELOOP        
 
@@ -230,11 +292,13 @@ PRINTMESSAGE:
     ret         
     
 MESSAGE1:    db 'MINT64 OS Boot Loader Start~!!', 0                                                   
-MESSAGE2:   db 'Current time: ', 0
+;MESSAGE2:   db 'Current time: ', 0
 
 DISKERRORMESSAGE:       db  'DISK Error~!!', 0
 IMAGELOADINGMESSAGE:    db  'OS Image Loading...', 0
 LOADINGCOMPLETEMESSAGE: db  'Complete~!!', 0
+
+CHECKIMAGEMESSAGE:  db 'OS Image Checking...', 0
 
 SECTORNUMBER:           db  0x02    
 HEADNUMBER:             db  0x00    
