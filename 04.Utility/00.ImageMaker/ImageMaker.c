@@ -3,8 +3,8 @@
  *  date    2008/12/16
  *  author  kkamagui 
  *          Copyright(c)2008 All rights reserved by kkamagui
- *  brief   ï¿½ï¿½Æ® ï¿½Î´ï¿½ï¿½ï¿½ Ä¿ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ImageMakerï¿½ï¿½ 
- *          ï¿½Ò½ï¿½ ï¿½ï¿½ï¿½ï¿½
+ *  brief   ? ?™?˜™?Š¸ ? ?‹¸?Œ?˜™? ?™?˜™ ì»¤å ?™?˜™ ? ?‹±ë±„ì˜™? ?™?˜™? ?™?˜™ ? ?™?˜™? ?™?˜™? ?‹¹ê³¤ì˜™, ? ?™?˜™? ?™?˜™ ? ?™?˜™? ?™?˜™? ?™?˜™ ? ?™?˜™? ?™?˜™? ?™?˜™ ? ?Œ?Œ?˜™ ImageMaker? ?™?˜™ 
+ *          ? ????™?˜™ ? ?™?˜™? ?™?˜™
  */
 
 #include <stdio.h>
@@ -21,13 +21,13 @@
 
 #define BYTESOFSECTOR  512
 
-// ï¿½Ô¼ï¿½ ï¿½ï¿½ï¿½ï¿½
+// ? ?Œ‰?‡½?˜™ ? ?™?˜™? ?™?˜™
 int AdjustInSectorSize( int iFd, int iSourceSize );
 void WriteKernelInformation( int iTargetFd, int iKernelSectorCount );
-int CopyFile( int iSourceFd, int iTargetFd );
+int CopyFile( int iSourceFd, int iTargetFd, int IsKernel );
 
 /**
- *  Main ï¿½Ô¼ï¿½
+ *  Main ? ?Œ‰?‡½?˜™
 */
 int main(int argc, char* argv[])
 {
@@ -36,15 +36,15 @@ int main(int argc, char* argv[])
     int iBootLoaderSize;
     int iKernel32SectorCount;
     int iSourceSize;
-        
-    // Ä¿ï¿½Çµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½ ï¿½Ë»ï¿½
+
+    // ì»¤å ?‹¤?“¸?˜™ ? ?™?˜™? ?™?˜™ ? ?‹¬?‡½?˜™ ? ?‹¯?‚¼?˜™
     if( argc < 3 )
     {
         fprintf( stderr, "[ERROR] ImageMaker.exe BootLoader.bin Kernel32.bin\n" );
         exit( -1 );
     }
     
-    // Disk.img ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+    // Disk.img ? ?™?˜™? ?™?˜™? ?™?˜™ ? ?™?˜™? ?™?˜™
     if( ( iTargetFd = open( "Disk.img", O_RDWR | O_CREAT |  O_TRUNC |
             O_BINARY, S_IREAD | S_IWRITE ) ) == -1 )
     {
@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
     }
 
     //--------------------------------------------------------------------------
-    // ï¿½ï¿½Æ® ï¿½Î´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½î¼­ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å© ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½
+    // ? ?™?˜™?Š¸ ? ?‹¸?Œ?˜™ ? ?™?˜™? ?™?˜™? ?™?˜™ ? ?™?˜™? ?˜?„œ ? ?™?˜™?   ? ?™?˜™? ?™?˜™? ?™?˜™ ? ?™?˜™?¬ ? ?‹±ë±„ì˜™? ?™?˜™ ? ?™?˜™? ?‹¹ë¤„ì˜™ ? ?™?˜™? ?™?˜™
     //--------------------------------------------------------------------------
     printf( "[INFO] Copy boot loader to image file\n" );
     if( ( iSourceFd = open( argv[ 1 ], O_RDONLY | O_BINARY ) ) == -1 )
@@ -62,16 +62,16 @@ int main(int argc, char* argv[])
         exit( -1 );
     }
 
-    iSourceSize = CopyFile( iSourceFd, iTargetFd );
+    iSourceSize = CopyFile( iSourceFd, iTargetFd, 0 );
     close( iSourceFd );
     
-    // ï¿½ï¿½ï¿½ï¿½ Å©ï¿½â¸¦ ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ï¿½ï¿½ 512ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ß±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ï¿½ 0x00 ï¿½ï¿½ï¿½ï¿½ Ã¤ï¿½ï¿½
+    // ? ?™?˜™? ?™?˜™ ?¬? ?©ë¥? ? ?™?˜™? ?™?˜™ ?¬? ?™?˜™? ?™?˜™ 512? ?™?˜™? ?™?˜™?Š¸? ?™?˜™ ? ?™?˜™? ?Œ©ê¹ì˜™ ? ?™?˜™? ?™?˜™ ? ?™?˜™? ?™?˜™? ?™?˜™ ? ?‹¸ë¸ì˜™? ?™?˜™ 0x00 ? ?™?˜™? ?™?˜™ ì±„å ?™?˜™
     iBootLoaderSize = AdjustInSectorSize( iTargetFd , iSourceSize );
     printf( "[INFO] %s size = [%d] and sector count = [%d]\n",
             argv[ 1 ], iSourceSize, iBootLoaderSize );
 
     //--------------------------------------------------------------------------
-    // 32ï¿½ï¿½Æ® Ä¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½î¼­ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å© ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½
+    // 32? ?™?˜™?Š¸ ì»¤å ?™?˜™ ? ?™?˜™? ?™?˜™? ?™?˜™ ? ?™?˜™? ?˜?„œ ? ?™?˜™?   ? ?™?˜™? ?™?˜™? ?™?˜™ ? ?™?˜™?¬ ? ?‹±ë±„ì˜™? ?™?˜™ ? ?™?˜™? ?‹¹ë¤„ì˜™ ? ?™?˜™? ?™?˜™
     //--------------------------------------------------------------------------
     printf( "[INFO] Copy protected mode kernel to image file\n" );
     if( ( iSourceFd = open( argv[ 2 ], O_RDONLY | O_BINARY ) ) == -1 )
@@ -80,19 +80,19 @@ int main(int argc, char* argv[])
         exit( -1 );
     }
 
-    iSourceSize = CopyFile( iSourceFd, iTargetFd );
+    iSourceSize = CopyFile( iSourceFd, iTargetFd ,1);
     close( iSourceFd );
     
-    // ï¿½ï¿½ï¿½ï¿½ Å©ï¿½â¸¦ ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ï¿½ï¿½ 512ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ß±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ï¿½ 0x00 ï¿½ï¿½ï¿½ï¿½ Ã¤ï¿½ï¿½
+    // ? ?™?˜™? ?™?˜™ ?¬? ?©ë¥? ? ?™?˜™? ?™?˜™ ?¬? ?™?˜™? ?™?˜™ 512? ?™?˜™? ?™?˜™?Š¸? ?™?˜™ ? ?™?˜™? ?Œ©ê¹ì˜™ ? ?™?˜™? ?™?˜™ ? ?™?˜™? ?™?˜™? ?™?˜™ ? ?‹¸ë¸ì˜™? ?™?˜™ 0x00 ? ?™?˜™? ?™?˜™ ì±„å ?™?˜™
     iKernel32SectorCount = AdjustInSectorSize( iTargetFd, iSourceSize );
     printf( "[INFO] %s size = [%d] and sector count = [%d]\n",
                 argv[ 2 ], iSourceSize, iKernel32SectorCount );
 
     //--------------------------------------------------------------------------
-    // ï¿½ï¿½Å© ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ Ä¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+    // ? ?™?˜™?¬ ? ?‹±ë±„ì˜™? ?™?˜™? ?™?˜™ ì»¤å ?™?˜™ ? ?™?˜™? ?™?˜™? ?™?˜™ ? ?™?˜™? ?™?˜™
     //--------------------------------------------------------------------------
     printf( "[INFO] Start to write kernel information\n" );    
-    // ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 5ï¿½ï¿½Â° ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ Ä¿ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+    // ? ?™?˜™?Š¸? ?™?˜™? ?™?˜™? ?™?˜™ 5? ?™?˜™ì§? ? ?™?˜™? ?™?˜™?Š¸? ?™?˜™? ?™?˜™ ì»¤å ?‹¸?š¸?˜™ ? ?™?˜™? ?™?˜™ ? ?™?˜™? ?™?˜™? ?™?˜™ ? ?™?˜™? ?™?˜™
     WriteKernelInformation( iTargetFd, iKernel32SectorCount );
     printf( "[INFO] Image file create complete\n" );
 
@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
 }
 
 /**
- *  ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ï¿½ï¿½ 512ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ß¾ï¿½ 0x00ï¿½ï¿½ï¿½ï¿½ Ã¤ï¿½ï¿½
+ *  ? ?™?˜™? ?™?˜™ ? ?™?˜™ì¹˜å ?™?˜™? ?™?˜™ 512? ?™?˜™? ?™?˜™?Š¸ ? ?™?˜™?   ? ?™?˜™ì¹˜å ?™?˜™? ?™?˜™ ? ?™?˜™? ?Œ©?–µ?˜™ 0x00? ?™?˜™? ?™?˜™ ì±„å ?™?˜™
 */
 int AdjustInSectorSize( int iFd, int iSourceSize )
 {
@@ -128,20 +128,20 @@ int AdjustInSectorSize( int iFd, int iSourceSize )
         printf( "[INFO] File size is aligned 512 byte\n" );
     }
     
-    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ï¿½ï¿½
+    // ? ?™?˜™? ?™?˜™ ? ?™?˜™? ?™?˜™ ? ?‹¤?“¸?˜™? ?™?˜™? ?™?˜™
     iSectorCount = ( iSourceSize + iAdjustSizeToSector ) / BYTESOFSECTOR;
     return iSectorCount;
 }
 
 /**
- *  ï¿½ï¿½Æ® ï¿½Î´ï¿½ï¿½ï¿½ Ä¿ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+ *  ? ?™?˜™?Š¸ ? ?‹¸?Œ?˜™? ?™?˜™ ì»¤å ?‹¸?š¸?˜™ ? ?™?˜™? ?™?˜™ ? ?™?˜™? ?™?˜™? ?™?˜™ ? ?™?˜™? ?™?˜™
 */
 void WriteKernelInformation( int iTargetFd, int iKernelSectorCount )
 {
     unsigned short usData;
     long lPosition;
     
-    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Û¿ï¿½ï¿½ï¿½ 5ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½
+    // ? ?™?˜™? ?™?˜™? ?™?˜™ ? ?™?˜™? ?Œœ?š¸?˜™? ?™?˜™ 5? ?™?˜™? ?™?˜™?Š¸ ? ?™?˜™? ?™?˜™? ?™?˜™ ? ?™?˜™ì¹˜å ?™?˜™ ì»¤å ?™?˜™? ?™?˜™ ? ?™?˜™ ? ?™?˜™? ?™?˜™ ? ?™?˜™ ? ?™?˜™? ?™?˜™? ?™?˜™ ? ?™?˜™???? ?™?˜™
     lPosition = lseek( iTargetFd, 5, SEEK_SET );
     if( lPosition == -1 )
     {
@@ -158,9 +158,9 @@ void WriteKernelInformation( int iTargetFd, int iKernelSectorCount )
 }
 
 /**
- *  ï¿½Ò½ï¿½ ï¿½ï¿½ï¿½ï¿½(Source FD)ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ ï¿½ï¿½ï¿½ï¿½(Target FD)ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ Å©ï¿½â¸¦ ï¿½Çµï¿½ï¿½ï¿½ï¿½ï¿½
+ *  ? ????™?˜™ ? ?™?˜™? ?™?˜™(Source FD)? ?™?˜™ ? ?™?˜™? ?™?˜™? ?™?˜™ ? ?™?˜™?‘œ ? ?™?˜™? ?™?˜™(Target FD)? ?™?˜™ ? ?™?˜™? ?™?˜™? ?‹¹ê³¤ì˜™ ? ?™?˜™ ?¬? ?©ë¥? ? ?‹¤?“¸?˜™? ?™?˜™? ?™?˜™
 */
-int CopyFile( int iSourceFd, int iTargetFd )
+int CopyFile( int iSourceFd, int iTargetFd , int IsKernel )
 {
     int iSourceFileSize;
     int iRead;
@@ -168,10 +168,71 @@ int CopyFile( int iSourceFd, int iTargetFd )
     char vcBuffer[ BYTESOFSECTOR ];
 
     iSourceFileSize = 0;
+
+
+    //int hash=0;
+    char hashBuff[4]={0};
+    char FbyteChar[4]={0};
+    int FbyteInt=0;
+    int check=0;
+    int ReadByte;
+
+    char kernelByte[663]={0};
+    char hash[4]={0};
+    
+    if(IsKernel==1){
+      /*while(1){
+            ReadByte = read(iSourceFd,FbyteChar,4);
+            for(int i=0;i<4;i++){
+                int tmp=FbyteChar[i]&0xFF;
+                //printf(" %d ",tmp);
+                FbyteInt |= tmp;
+                if(i!=3) FbyteInt <<= 8;
+            }
+            //printf("\nInt:%d ",FbyteInt);
+            if(check==0)
+            hash=FbyteInt;
+            else
+                hash^=FbyteInt;
+
+            if(ReadByte!=4) break;
+        }*/
+        read(iSourceFd,kernelByte,sizeof(kernelByte));
+
+        lseek(iSourceFd,0,SEEK_SET);
+        
+        /*for(int i=0;i<4;i++){
+            int tmp=hash&0xFF;
+            hashBuff[i] |= tmp;
+            if(i!=3) hash >>= 8;
+        }*/
+        
+        for(int i=0;i<663;i++){
+            //printf("%d %01X %01X %01X\n",i,hash[i%4],kernelByte[i],hash[i%4]^kernelByte[i]);
+            if(i<4)hash[i]=kernelByte[i];
+            else hash[i%4]^=kernelByte[i];
+        }
+
+        int hI=0;
+        for(int i=0;i<4;i++){
+            int tmp=hash[i];
+            hI |= tmp;
+            if(i!=3) hI<<=8;
+        }
+        
+        iSourceFileSize = write(iTargetFd, hash, sizeof(hash));
+        printf("%d\n",iSourceFileSize);
+    }
+
+
     while( 1 )
     {
         iRead   = read( iSourceFd, vcBuffer, sizeof( vcBuffer ) );
         iWrite  = write( iTargetFd, vcBuffer, iRead );
+
+        
+        printf("\n%d %d\n",iRead,sizeof(vcBuffer));
+
 
         if( iRead != iWrite )
         {
@@ -185,5 +246,7 @@ int CopyFile( int iSourceFd, int iTargetFd )
             break;
         }
     }
+
+
     return iSourceFileSize;
 } 

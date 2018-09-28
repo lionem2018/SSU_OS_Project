@@ -174,14 +174,13 @@ READEND:
 
 ;    mov ah, cl
 ;    call PRINTONEBINARY
-
 ;    mov ah, ch
 ;    call PRINTONEBINARY
 
 READYTOCALCULATEHASH:
     mov ax, 0x1000
     mov fs, ax
-    mov di, 0x00
+    mov di, 0x04
 
     mov bx, 0x00
     mov cx, 0x00
@@ -189,32 +188,36 @@ READYTOCALCULATEHASH:
 CALCULATEHASHLOOP:
 
     xor bl, byte [ fs: di ]
-    add di, 0x01
-    xor bh, byte [ fs: di ]
-    add di, 0x01
-    xor cl, byte [ fs: di ]
-    add di, 0x01
-    xor ch, byte [ fs: di ]
-    add di, 0x01
+    xor bh, byte [ fs: di + 1 ]
+    xor cl, byte [ fs: di + 2 ]
+    xor ch, byte [ fs: di + 3 ]
+
+    add di, 0x04
     
     cmp di, 1024
     jb CALCULATEHASHLOOP
 
 PRINTBINARIES:
     mov di, 320
+
+    sub bl, byte[ fs: 0x00]
     mov ah, bl
     call PRINTONEBINARY
 
+    sub bh, byte[ fs: 0x01]
     mov ah, bh
     call PRINTONEBINARY
 
+    sub cl, byte[ fs: 0x02]
     mov ah, cl
     call PRINTONEBINARY
 
+    sub ch, byte[ fs: 0x03]
     mov ah, ch
     call PRINTONEBINARY
 
-    jmp 0x1000:0x0000
+    jmp $
+    ;jmp 0x1000:0x0000
     
 
 PRINTONEBINARY:
