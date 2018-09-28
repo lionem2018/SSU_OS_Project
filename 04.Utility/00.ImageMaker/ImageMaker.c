@@ -24,7 +24,7 @@
 // �Լ� ����
 int AdjustInSectorSize( int iFd, int iSourceSize );
 void WriteKernelInformation( int iTargetFd, int iKernelSectorCount );
-int CopyFile( int iSourceFd, int iTargetFd );
+int CopyFile( int iSourceFd, int iTargetFd, int IsKernel );
 
 /**
  *  Main �Լ�
@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
     int iBootLoaderSize;
     int iKernel32SectorCount;
     int iSourceSize;
-        
+
     // Ŀ�ǵ� ���� �ɼ� �˻�
     if( argc < 3 )
     {
@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
     }
 
     //--------------------------------------------------------------------------
-    // ��Ʈ �δ� ������ ��� ��� ������ ��ũ �̹��� ���Ϸ� ����
+    // ��Ʈ �δ� ������ ��� ���? ������ ��ũ �̹��� ���Ϸ� ����
     //--------------------------------------------------------------------------
     printf( "[INFO] Copy boot loader to image file\n" );
     if( ( iSourceFd = open( argv[ 1 ], O_RDONLY | O_BINARY ) ) == -1 )
@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
         exit( -1 );
     }
 
-    iSourceSize = CopyFile( iSourceFd, iTargetFd );
+    iSourceSize = CopyFile( iSourceFd, iTargetFd, 0 );
     close( iSourceFd );
     
     // ���� ũ�⸦ ���� ũ���� 512����Ʈ�� ���߱� ���� ������ �κ��� 0x00 ���� ä��
@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
             argv[ 1 ], iSourceSize, iBootLoaderSize );
 
     //--------------------------------------------------------------------------
-    // 32��Ʈ Ŀ�� ������ ��� ��� ������ ��ũ �̹��� ���Ϸ� ����
+    // 32��Ʈ Ŀ�� ������ ��� ���? ������ ��ũ �̹��� ���Ϸ� ����
     //--------------------------------------------------------------------------
     printf( "[INFO] Copy protected mode kernel to image file\n" );
     if( ( iSourceFd = open( argv[ 2 ], O_RDONLY | O_BINARY ) ) == -1 )
@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
         exit( -1 );
     }
 
-    iSourceSize = CopyFile( iSourceFd, iTargetFd );
+    iSourceSize = CopyFile( iSourceFd, iTargetFd ,1);
     close( iSourceFd );
     
     // ���� ũ�⸦ ���� ũ���� 512����Ʈ�� ���߱� ���� ������ �κ��� 0x00 ���� ä��
@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
 }
 
 /**
- *  ���� ��ġ���� 512����Ʈ ��� ��ġ���� ���߾� 0x00���� ä��
+ *  ���� ��ġ���� 512����Ʈ ���? ��ġ���� ���߾� 0x00���� ä��
 */
 int AdjustInSectorSize( int iFd, int iSourceSize )
 {
@@ -160,7 +160,7 @@ void WriteKernelInformation( int iTargetFd, int iKernelSectorCount )
 /**
  *  �ҽ� ����(Source FD)�� ������ ��ǥ ����(Target FD)�� �����ϰ� �� ũ�⸦ �ǵ�����
 */
-int CopyFile( int iSourceFd, int iTargetFd )
+int CopyFile( int iSourceFd, int iTargetFd , int IsKernel )
 {
     int iSourceFileSize;
     int iRead;
@@ -168,10 +168,45 @@ int CopyFile( int iSourceFd, int iTargetFd )
     char vcBuffer[ BYTESOFSECTOR ];
 
     iSourceFileSize = 0;
+
+
+    //int hash=0;
+    char hashBuff[4]={0};
+    char FbyteChar[4]={0};
+    int FbyteInt=0;
+    int check=0;
+    int ReadByte;
+
+    char kernelByte[663]={0};
+    char hash[4]={0};
+    
+    if(IsKernel==1){
+        read(iSourceFd,kernelByte,sizeof(kernelByte));
+
+        lseek(iSourceFd,0,SEEK_SET);
+        
+        for(int i=0;i<663;i++){
+            //printf("%d %01X %01X %01X\n",i,hash[i%4],kernelByte[i],hash[i%4]^kernelByte[i]);
+            if(i<4)hash[i]=kernelByte[i];
+            else hash[i%4]^=kernelByte[i];
+        }
+
+        int hI=0;
+        for(int i=0;i<4;i++){
+            int tmp=hash[i];
+            hI |= tmp;
+            if(i!=3) hI<<=8;
+        }
+        
+        iSourceFileSize = write(iTargetFd, hash, sizeof(hash));
+    }
+
+
     while( 1 )
     {
         iRead   = read( iSourceFd, vcBuffer, sizeof( vcBuffer ) );
         iWrite  = write( iTargetFd, vcBuffer, iRead );
+
 
         if( iRead != iWrite )
         {
@@ -185,5 +220,7 @@ int CopyFile( int iSourceFd, int iTargetFd )
             break;
         }
     }
+
+
     return iSourceFileSize;
 } 

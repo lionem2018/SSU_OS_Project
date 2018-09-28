@@ -165,7 +165,7 @@ READEND:
     call PRINTMESSAGE              
     add  sp, 6                     
 
-    jmp 0x1000:0x0000
+    jmp 0x1000:0x0004
     
 HANDLEDISKERROR:
     push DISKERRORMESSAGE  
