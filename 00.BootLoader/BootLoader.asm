@@ -216,8 +216,8 @@ PRINTBINARIES:
     mov ah, ch
     call PRINTONEBINARY
 
-    jmp $
-    ;jmp 0x1000:0x0000
+    ;jmp $
+    jmp 0x1000:0x0004
     
 
 PRINTONEBINARY:
