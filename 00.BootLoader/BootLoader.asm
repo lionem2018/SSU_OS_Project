@@ -151,7 +151,7 @@ READDATA:
 READEND:
     push LOADINGCOMPLETEMESSAGE    
     push 1                      
-    push 20                        
+    push 17                     
     call PRINTMESSAGE              
     add  sp, 6 
 
@@ -271,7 +271,7 @@ PRINTONEBINARY:
 HANDLEDISKERROR:
     push DISKERRORMESSAGE  
     push 1                
-    push 20                
+    push 17             
     call PRINTMESSAGE      
     
     jmp $                  
@@ -325,14 +325,14 @@ PRINTMESSAGE:
     pop bp      
     ret         
     
-MESSAGE1:    db 'MINT64 OS Boot Loader Start~!!', 0                                                   
+MESSAGE1:    db 'BootLoader Start', 0                                                   
 ;MESSAGE2:   db 'Current time: ', 0
 
-DISKERRORMESSAGE:       db  'DISK Error~!!', 0
-IMAGELOADINGMESSAGE:    db  'OS Image Loading...', 0
-LOADINGCOMPLETEMESSAGE: db  'Complete~!!', 0
+DISKERRORMESSAGE:       db  'Error', 0
+IMAGELOADINGMESSAGE:    db  'OS IMG Loading...', 0
+LOADINGCOMPLETEMESSAGE: db  'Complete', 0
 
-CHECKIMAGEMESSAGE:  db 'OS Image Checking...', 0
+CHECKIMAGEMESSAGE:  db 'OS IMG Checking...', 0
 
 SECTORNUMBER:           db  0x02    
 HEADNUMBER:             db  0x00    
