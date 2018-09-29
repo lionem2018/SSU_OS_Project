@@ -210,30 +210,87 @@ PRINTBINARIES:
     ; 비디오 어드레스 주소에서 출력할 지점을 di 레지스터에 저장
     ; 3번째 줄 처음부터 출력 시작
     mov di, 320
-    
+    push CHECKIMAGEMESSAGE
+    push 2
+    push 0
+    call PRINTMESSAGE 
     ; 첫번째 바이트 값 비교 (차이 계산) 후 PRINTONEBINARY 함수를 통해 출력
     ; 계산한 해시 값의 하위 1바이트에 저장되어있는 해시 값의 하위 1바이트를 뺀 후 출력
     ; bin 파일 내 저장된 해시값은 fs: 0x00 ~ fs: 0x03에 저장되어있음
-    sub bl, byte[ fs: 0x00]
-    mov ah, bl
-    call PRINTONEBINARY
+    ;sub bl, byte[ fs: 0x00]
+    ;mov ah, bl
+    ;call PRINTONEBINARY
+    cmp bl, byte[fs : 0x00]
+    je F
+    jmp Fail
 
     ; 두번째 바이트 값 비교 후 출력
-    sub bh, byte[ fs: 0x01]
+F:
+    ;sub bh, byte[ fs: 0x01]
+    ;mov ah, bh
+    ;call PRINTONEBINARY
+    cmp bh, byte[ fs: 0x01]
+    je S
+    jmp Fail
+
+    ; 세번째 바이트 값 비교 후 출력
+S:    
+    ;sub cl, byte[ fs: 0x02]
+    ;mov ah, cl
+    ;call PRINTONEBINARY
+    cmp cl, byte[fs : 0x02]
+    je T
+    jmp Fail
+
+T:    
+    ; 네번째 바이트 값 비교 후 출력
+    ;sub ch, byte[ fs: 0x03]
+    ;mov ah, ch
+    ;call PRINTONEBINARY
+    cmp ch, byte[fs : 0x03]
+    je True
+    jmp Fail
+
+True:
+    push IMGSUCCE
+    push 2
+    push 13
+    call PRINTMESSAGE
+    jmp 0x1000:0x0004
+
+Fail:
+    mov ah, bl
+    call PRINTONEBINARY
+    
     mov ah, bh
     call PRINTONEBINARY
 
-    ; 세번째 바이트 값 비교 후 출력
-    sub cl, byte[ fs: 0x02]
     mov ah, cl
     call PRINTONEBINARY
-    
-    ; 네번째 바이트 값 비교 후 출력
-    sub ch, byte[ fs: 0x03]
+
     mov ah, ch
     call PRINTONEBINARY
-    jmp 0x1000:0x0004
-    
+
+    ;push 4
+    ;push 0
+    mov di, 480
+    mov bl, byte[fs: 0x00]
+    mov ah, bl
+    call PRINTONEBINARY
+
+    mov bh, byte[fs: 0x01]
+    mov ah, bh
+    call PRINTONEBINARY
+
+    mov cl, byte[fs : 0x02]
+    mov ah, cl
+    call PRINTONEBINARY
+
+    mov ch , byte[fs : 0x03]
+    mov ah, ch
+    call PRINTONEBINARY
+
+    jmp $
 
 ; 한 바이트 값을 16진수 형태로 출력하기 위한 함수
 ; 출력할 값은 ah 레지스터에 담겨 있어야 함
@@ -353,14 +410,16 @@ PRINTMESSAGE:
     pop bp      
     ret         
     
-MESSAGE1:    db 'BootLoader Start', 0                                                   
+MESSAGE1:    db 'S', 0                                                   
 ;MESSAGE2:   db 'Current time: ', 0
 
-DISKERRORMESSAGE:       db  'Error', 0
-IMAGELOADINGMESSAGE:    db  'OS IMG Loading...', 0
-LOADINGCOMPLETEMESSAGE: db  'Complete', 0
+DISKERRORMESSAGE:       db  'E', 0
+IMAGELOADINGMESSAGE:    db  'L', 0
+LOADINGCOMPLETEMESSAGE: db  'C', 0
 
-CHECKIMAGEMESSAGE:  db 'OS IMG Checking...', 0
+CHECKIMAGEMESSAGE:  db 'C', 0
+IMGSUCCE: db 'O', 0
+IMGFAIL: db 'F',0
 
 SECTORNUMBER:           db  0x02    
 HEADNUMBER:             db  0x00    
