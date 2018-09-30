@@ -218,37 +218,37 @@ FAIL:
     call PRINTMESSAGE
 
     mov ah, byte[fs: 0x00]
-    call PRINTONEHEX
+    call PRINTONEBYTE
 
     mov ah, byte[fs: 0x01]
-    call PRINTONEHEX
+    call PRINTONEBYTE
 
     mov ah, byte[fs: 0x02]
-    call PRINTONEHEX
+    call PRINTONEBYTE
 
     mov ah, byte[fs: 0x03]
-    call PRINTONEHEX
+    call PRINTONEBYTE
 
     mov di, 640
 
     mov ah, bl
-    call PRINTONEHEX
+    call PRINTONEBYTE
     
     mov ah, bh
-    call PRINTONEHEX
+    call PRINTONEBYTE
 
     mov ah, cl
-    call PRINTONEHEX
+    call PRINTONEBYTE
 
     mov ah, ch
-    call PRINTONEHEX
+    call PRINTONEBYTE
 
     jmp $
 
 ; ?•œ ë°”ì´?Š¸ ê°’ì„ 16ì§„ìˆ˜ ?˜•?ƒœë¡? ì¶œë ¥?•˜ê¸? ?œ„?•œ ?•¨?ˆ˜
 ; ì¶œë ¥?•  ê°’ì?? ah ? ˆì§??Š¤?„°?— ?‹´ê²? ?žˆ?–´?•¼ ?•¨
 ; ì¶œë ¥?•  ?œ„ì¹˜ë?? ?‚˜????‚´?Š” di?Š” ë¯¸ë¦¬ ê°’ì´ ì§?? •?˜?–´ ?žˆ?–´?•¼ ?•¨
-PRINTONEHEX:
+PRINTONEBYTE:
     push bp       
     mov bp, sp    
             
