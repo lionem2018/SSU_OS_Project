@@ -151,94 +151,104 @@ READDATA:
 READEND:
     push LOADINGCOMPLETEMESSAGE    
     push 1                      
-    push 17                     
+    push 9                    
     call PRINTMESSAGE              
     add  sp, 6 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; 단순 저장된 해시값을 출력하기 위한 테스트 코드
-;READHASHVALUE:
-;    mov ax, 0x1000                 
-;    mov fs, ax
-
-;    mov bx, word [ fs: 0x00 ]
-;    mov cx, word [ fs: 0x02 ]
-
-;PRINTBINARIES:
-;    mov di, 320;
-;    mov ah, bl
-;    call PRINTONEBINARY
-
-;    mov ah, bh
-;    call PRINTONEBINARY
-
-;    mov ah, cl
-;    call PRINTONEBINARY
-;    mov ah, ch
-;    call PRINTONEBINARY
-
-; 해시 값을 계산하기 위한 준비
+; ?��?�� 값을 계산?���? ?��?�� �?�?
 READYTOCALCULATEHASH:
-    ; 해시값을 읽어올 메모리 시작 주소를 fs 레지스터에 저장
+    ; ?��?��값을 ?��?��?�� 메모�? ?��?�� 주소�? fs ?���??��?��?�� ????��
     mov ax, 0x1000
     mov fs, ax
-    ; 4바이트 이후부터 계산해야하기 때문에 index 역할을 하는 di 레지스터를 4로 초기화
+    ; 4바이?�� ?��?���??�� 계산?��?��?���? ?��문에 index ?��?��?�� ?��?�� di ?���??��?���? 4�? 초기?��
     mov di, 0x04
 
-    ; xor 연산 값을 저장할 레지스터 0으로 초기화
+    ; xor ?��?�� 값을 ????��?�� ?���??��?�� 0?���? 초기?��
     mov bx, 0x00
     mov cx, 0x00
 
-; xor 연산을 통해 해시 값을 계산하는 루프
+; xor ?��?��?�� ?��?�� ?��?�� 값을 계산?��?�� 루프
 CALCULATEHASHLOOP:
-    ; 4바이트를 한 바이트씩 가져와 xor 연산 실행
-    xor bl, byte [ fs: di ]
-    xor bh, byte [ fs: di + 1 ]
-    xor cl, byte [ fs: di + 2 ]
-    xor ch, byte [ fs: di + 3 ]
+    ; 4바이?���? ?�� 바이?��?�� �??��??? xor ?��?�� ?��?��
+    xor bx, word [ fs: di ]
+    xor cx, word [ fs: di + 2 ]
 
-    ; 다음 4바이트를 가져오기 위해 di 4 증가
+    ; ?��?�� 4바이?���? �??��?���? ?��?�� di 4 증�??
     add di, 0x04
     
-    ; 2섹터(1024바이트)를 모두 연산할 때까지 루프 수행
+    ; 2?��?��(1024바이?��)�? 모두 ?��?��?�� ?��까�?? 루프 ?��?��
     cmp di, 1024
     jb CALCULATEHASHLOOP
 
-; 4바이트의 해시값 출력
-; 여기서는 계산된 값과 저장되어있는 값의 차이를 출력
-PRINTBINARIES:
-    ; 비디오 어드레스 주소에서 출력할 지점을 di 레지스터에 저장
-    ; 3번째 줄 처음부터 출력 시작
+; 4바이?��?�� ?��?���? 출력
+; ?��기서?�� 계산?�� 값과 ????��?��?��?��?�� 값의 차이�? 출력
+COMPAREHASH:
+    ; 비디?�� ?��?��?��?�� 주소?��?�� 출력?�� �??��?�� di ?���??��?��?�� ????��
+    ; 3번째 �? 처음�??�� 출력 ?��?��
     mov di, 320
-    
-    ; 첫번째 바이트 값 비교 (차이 계산) 후 PRINTONEBINARY 함수를 통해 출력
-    ; 계산한 해시 값의 하위 1바이트에 저장되어있는 해시 값의 하위 1바이트를 뺀 후 출력
-    ; bin 파일 내 저장된 해시값은 fs: 0x00 ~ fs: 0x03에 저장되어있음
-    sub bl, byte[ fs: 0x00]
-    mov ah, bl
-    call PRINTONEBINARY
+    push CHECKIMAGEMESSAGE
+    push 2
+    push 0
+    call PRINTMESSAGE 
+    ; 첫번�? 바이?�� �? 비교 (차이 계산) ?�� PRINTONEBINARY ?��?���? ?��?�� 출력
+    ; 계산?�� ?��?�� 값의 ?��?�� 1바이?��?�� ????��?��?��?��?�� ?��?�� 값의 ?��?�� 1바이?���? �? ?�� 출력
+    ; bin ?��?�� ?�� ????��?�� ?��?��값�?? fs: 0x00 ~ fs: 0x03?�� ????��?��?��?��?��
 
-    ; 두번째 바이트 값 비교 후 출력
-    sub bh, byte[ fs: 0x01]
-    mov ah, bh
-    call PRINTONEBINARY
+    cmp bx, word [fs: 0x00]
+    jne FAIL
 
-    ; 세번째 바이트 값 비교 후 출력
-    sub cl, byte[ fs: 0x02]
-    mov ah, cl
-    call PRINTONEBINARY
-    
-    ; 네번째 바이트 값 비교 후 출력
-    sub ch, byte[ fs: 0x03]
-    mov ah, ch
-    call PRINTONEBINARY
+    cmp cx, word [fs: 0x02]
+    jne FAIL
+
+OKAY:
+    push IMGSUCCE
+    push 2
+    push 10
+    call PRINTMESSAGE
+
     jmp 0x1000:0x0004
-    
 
-; 한 바이트 값을 16진수 형태로 출력하기 위한 함수
-; 출력할 값은 ah 레지스터에 담겨 있어야 함
-; 출력할 위치를 나타내는 di는 미리 값이 지정되어 있어야 함
-PRINTONEBINARY:
+FAIL:
+    mov di, 480
+
+    push IMGFAIL
+    push 2
+    push 10
+    call PRINTMESSAGE
+
+    mov ah, byte[fs: 0x00]
+    call PRINTONEBYTE
+
+    mov ah, byte[fs: 0x01]
+    call PRINTONEBYTE
+
+    mov ah, byte[fs: 0x02]
+    call PRINTONEBYTE
+
+    mov ah, byte[fs: 0x03]
+    call PRINTONEBYTE
+
+    mov di, 640
+
+    mov ah, bl
+    call PRINTONEBYTE
+    
+    mov ah, bh
+    call PRINTONEBYTE
+
+    mov ah, cl
+    call PRINTONEBYTE
+
+    mov ah, ch
+    call PRINTONEBYTE
+
+    jmp $
+
+; ?�� 바이?�� 값을 16진수 ?��?���? 출력?���? ?��?�� ?��?��
+; 출력?�� 값�?? ah ?���??��?��?�� ?���? ?��?��?�� ?��
+; 출력?�� ?��치�?? ?��????��?�� di?�� 미리 값이 �??��?��?�� ?��?��?�� ?��
+PRINTONEBYTE:
     push bp       
     mov bp, sp    
             
@@ -247,46 +257,46 @@ PRINTONEBINARY:
     push cx
     push dx
 
-    ; 비디오 어드레스 시작 주소를 es 레지스터에 저장
+    ; 비디?�� ?��?��?��?�� ?��?�� 주소�? es ?���??��?��?�� ????��
     mov dx, 0xB800
     mov es, dx
 
-    ; 상위 4비트를 가져와 '0' 더함
+    ; ?��?�� 4비트�? �??��??? '0' ?��?��
     mov al, ah
     and al, 0xF0
     shr al, 0x4
     add al, 0x30
-    ; 만약 해당 값이 0xA가 넘는다면 출력을 위해 0x27를 추가로 더함
+    ; 만약 ?��?�� 값이 0xA�? ?��?��?���? 출력?�� ?��?�� 0x27�? 추�??�? ?��?��
     cmp al, '9'
-    ja .isUpperBig
-    ; 0xA를 넘지 않는 다면 출력 코드로 점프함
-    jmp .printUpperBinary
+    ja .ISUPPERBIG
+    ; 0xA�? ?���? ?��?�� ?���? 출력 코드�? ?��?��?��
+    jmp .PRINTUPPERHEX
 
-; 0xA 이상의 값을 출력하기 위해 추가로 0x27를 더하는 코드 (아스키코드 상의 출력을 위해)
-.isUpperBig: 
+; 0xA ?��?��?�� 값을 출력?���? ?��?�� 추�??�? 0x27�? ?��?��?�� 코드 (?��?��?��코드 ?��?�� 출력?�� ?��?��)
+.ISUPPERBIG: 
     add al, 0x27
 
-; 상위 4비트를 하나의 문자로 출력
-.printUpperBinary:
+; ?��?�� 4비트�? ?��?��?�� 문자�? 출력
+.PRINTUPPERHEX:
     mov byte [ es: di ], al
     add di, 2
 
-    ;하위 4비트를 가져와 '0'을 더하여 출력 이하 코드는 위와 동일
+    ;?��?�� 4비트�? �??��??? '0'?�� ?��?��?�� 출력 ?��?�� 코드?�� ?��??? ?��?��
     mov al, ah
     and al, 0x0F
     add al, 0x30
     cmp al, '9'
-    ja .isLowerBig
-    jmp .printLowerBinary
+    ja .ISLOWERBIG
+    jmp .PRINTLOWERHEX
 
-.isLowerBig: 
+.ISLOWERBIG: 
     add al, 0x27
 
-.printLowerBinary:
+.PRINTLOWERHEX:
     mov byte [ es: di ], al
     add di, 2
 
-    ; 함수를 끝내기 전 스택에 저장해 두었던 이전 값들을 되돌려놓음
+    ; ?��?���? ?��?���? ?�� ?��?��?�� ????��?�� ?��?��?�� ?��?�� 값들?�� ?��?��?��?��?��
     pop dx      
     pop cx            
     pop si      
@@ -299,7 +309,7 @@ PRINTONEBINARY:
 HANDLEDISKERROR:
     push DISKERRORMESSAGE  
     push 1                
-    push 17             
+    push 9          
     call PRINTMESSAGE      
     
     jmp $                  
@@ -353,14 +363,16 @@ PRINTMESSAGE:
     pop bp      
     ret         
     
-MESSAGE1:    db 'BootLoader Start', 0                                                   
-;MESSAGE2:   db 'Current time: ', 0
+MESSAGE1:    db 'Start', 0                                                   
+;MESSAGE2:   db 'Current time:', 0
 
-DISKERRORMESSAGE:       db  'Error', 0
-IMAGELOADINGMESSAGE:    db  'OS IMG Loading...', 0
-LOADINGCOMPLETEMESSAGE: db  'Complete', 0
+DISKERRORMESSAGE:       db  'Err', 0
+IMAGELOADINGMESSAGE:    db  'Loading:', 0
+LOADINGCOMPLETEMESSAGE: db  'Compl', 0
 
-CHECKIMAGEMESSAGE:  db 'OS IMG Checking...', 0
+CHECKIMAGEMESSAGE:  db 'Checking:', 0
+IMGSUCCE: db 'OK', 0
+IMGFAIL: db 'NO',0
 
 SECTORNUMBER:           db  0x02    
 HEADNUMBER:             db  0x00    
