@@ -9,6 +9,7 @@
 #include "Types.h"
 
 void kPrintString( int iX, int iY, const char* pcString );
+BOOL kInitializeKernal164Area( void );
 
 /**
  *  �Ʒ� �Լ��� C ���? Ŀ���� ���� �κ���
@@ -16,7 +17,13 @@ void kPrintString( int iX, int iY, const char* pcString );
  */
 void Main( void )
 {
+    DWORD i;
+
     kPrintString( 0, 4, "C Language Kernel Started~!!!" );
+
+    // IA-32e Kernal area initialize
+    kInitializeKernal164Area();
+    kPrintString( 0, 5, "IA-32e Kernal Area Initialization Complete" );
 
     while( 1 ) ;
 }
@@ -39,3 +46,24 @@ void kPrintString( int iX, int iY, const char* pcString )
     }
 }
 
+BOOL kInitializeKernal164Area( void )
+{
+    DWORD* pdwCurrentAddress;
+
+    //set address 0x100000(1MB)
+    pdwCurrentAddress = (DWORD *) 0x100000;
+
+    while( ( DWORD ) pdwCurrentAddress < 0x600000 )
+    {
+        *pdwCurrentAddress = 0x00;
+
+        if( *pdwCurrentAddress != 0)
+        {
+            return FALSE;
+        }
+
+        pdwCurrentAddress++;
+    }
+
+    return TRUE;
+}
