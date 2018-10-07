@@ -7,6 +7,8 @@ jmp 0x07C0:START
 
 TOTALSECTORCOUNT:   dw  0x02
 
+KERNEL32SECTORCOUNT: dw 0x02
+
 START:
     mov ax, 0x07C0  
     mov ds, ax      
@@ -178,7 +180,7 @@ CALCULATEHASHLOOP:
     add di, 0x04
     
     ; 2?„¹?„°(1024ë°”ì´?Š¸)ë¥? ëª¨ë‘ ?—°?‚°?•  ?•Œê¹Œì?? ë£¨í”„ ?ˆ˜?–‰
-    cmp di, 2048
+    cmp di, 2560
     jb CALCULATEHASHLOOP
 
 ; 4ë°”ì´?Š¸?˜ ?•´?‹œê°? ì¶œë ¥

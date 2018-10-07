@@ -23,7 +23,7 @@
 
 // ? ?Œ‰?‡½?˜™ ? ?™?˜™? ?™?˜™
 int AdjustInSectorSize( int iFd, int iSourceSize );
-void WriteKernelInformation( int iTargetFd, int iKernelSectorCount );
+void WriteKernelInformation( int iTargetFd, int iTotalKernelSectorCount, int iKernel32SectorCount );
 int CopyFile( int iSourceFd, int iTargetFd, int IsKernel );
 
 /**
@@ -35,12 +35,13 @@ int main(int argc, char* argv[])
     int iTargetFd;
     int iBootLoaderSize;
     int iKernel32SectorCount;
+    int iKernel64SectorCount;
     int iSourceSize;
 
     // ì»¤å ?‹¤?“¸?˜™ ? ?™?˜™? ?™?˜™ ? ?‹¬?‡½?˜™ ? ?‹¯?‚¼?˜™
-    if( argc < 3 )
+    if( argc < 4 )
     {
-        fprintf( stderr, "[ERROR] ImageMaker.exe BootLoader.bin Kernel32.bin\n" );
+        fprintf( stderr, "[ERROR] ImageMaker.exe BootLoader.bin Kernel32.bin Kernel64.bin\n" );
         exit( -1 );
     }
     
@@ -89,11 +90,30 @@ int main(int argc, char* argv[])
                 argv[ 2 ], iSourceSize, iKernel32SectorCount );
 
     //--------------------------------------------------------------------------
+    // 64¨¬?¨¡¢ç ?¢¯©ø? ¨¡????? ¢¯¡©??¨«¡© ?©£?? ©ø?¢¯??? ?©£©«¨¬?? ??©ö??? ¨¡???¡¤? ¨¬©ö??
+    //--------------------------------------------------------------------------
+    printf( "[INFO] Copy IA-32e mode kernel to image file\n" );
+    if( ( iSourceFd = open( argv[ 3 ], O_RDONLY | O_BINARY ) ) == -1 )
+    {
+        fprintf( stderr, "[ERROR] %s open fail\n", argv[ 3 ] );
+        exit( -1 );
+    }
+
+    iSourceSize = CopyFile( iSourceFd, iTargetFd, 0);
+    close( iSourceFd );
+    
+    // ¨¡??? ??¡¾??? ¨«©«?? ??¡¾??? 512©ö???¨¡¢ç¡¤? ???©¬¡¾? ?¡×?¨ª ©ø¨£???? ¨¬?¨¬¨¢?? 0x00 ??¡¤? ?¢æ¢¯?
+    iKernel64SectorCount = AdjustInSectorSize( iTargetFd, iSourceSize );
+    printf( "[INFO] %s size = [%d] and sector count = [%d]\n",
+                argv[ 3 ], iSourceSize, iKernel64SectorCount );
+    
+    //--------------------------------------------------------------------------
     // ? ?™?˜™?¬ ? ?‹±ë±„ì˜™? ?™?˜™? ?™?˜™ ì»¤å ?™?˜™ ? ?™?˜™? ?™?˜™? ?™?˜™ ? ?™?˜™? ?™?˜™
     //--------------------------------------------------------------------------
     printf( "[INFO] Start to write kernel information\n" );    
     // ? ?™?˜™?Š¸? ?™?˜™? ?™?˜™? ?™?˜™ 5? ?™?˜™ì§? ? ?™?˜™? ?™?˜™?Š¸? ?™?˜™? ?™?˜™ ì»¤å ?‹¸?š¸?˜™ ? ?™?˜™? ?™?˜™ ? ?™?˜™? ?™?˜™? ?™?˜™ ? ?™?˜™? ?™?˜™
-    WriteKernelInformation( iTargetFd, iKernel32SectorCount );
+    WriteKernelInformation( iTargetFd, iKernel32SectorCount + iKernel64SectorCount,
+            iKernel32SectorCount );
     printf( "[INFO] Image file create complete\n" );
 
     close( iTargetFd );
@@ -136,7 +156,7 @@ int AdjustInSectorSize( int iFd, int iSourceSize )
 /**
  *  ? ?™?˜™?Š¸ ? ?‹¸?Œ?˜™? ?™?˜™ ì»¤å ?‹¸?š¸?˜™ ? ?™?˜™? ?™?˜™ ? ?™?˜™? ?™?˜™? ?™?˜™ ? ?™?˜™? ?™?˜™
 */
-void WriteKernelInformation( int iTargetFd, int iKernelSectorCount )
+void WriteKernelInformation( int iTargetFd, int iTotalKernelSectorCount, int iKernel32SectorCount )
 {
     unsigned short usData;
     long lPosition;
@@ -150,11 +170,16 @@ void WriteKernelInformation( int iTargetFd, int iKernelSectorCount )
         exit( -1 );
     }
 
-    usData = ( unsigned short ) iKernelSectorCount;
+    // ¨¬?¨¡¢ç ¡¤????? ??¢¯??? ?? ¨«©«?? ¨«? ©ö¡¿ ¨¬??? ?©£?? ?¢¯©ø??? ¨«©«?? ¨«? ????
+    usData = ( unsigned short ) iTotalKernelSectorCount;
+    write( iTargetFd, &usData, 2 );
+    usData = ( unsigned short ) iKernel32SectorCount;
     write( iTargetFd, &usData, 2 );
 
     printf( "[INFO] Total sector count except boot loader [%d]\n", 
-        iKernelSectorCount );
+        iTotalKernelSectorCount );
+    printf( "[INFO] Total sector count of protected mode kernel [%d]\n", 
+        iKernel32SectorCount );
 }
 
 /**
@@ -177,7 +202,7 @@ int CopyFile( int iSourceFd, int iTargetFd , int IsKernel )
     int check=0;
     int ReadByte;
 
-    char kernelByte[2048]={0};
+    char kernelByte[2560]={0};
     char hash[4]={0};
     
     if(IsKernel==1){
@@ -207,7 +232,7 @@ int CopyFile( int iSourceFd, int iTargetFd , int IsKernel )
             if(i!=3) hash >>= 8;
         }*/
         
-        for(int i=0;i<2048;i++){
+        for(int i=0;i<2560;i++){
             //printf("%d %01X %01X %01X\n",i,hash[i%4],kernelByte[i],hash[i%4]^kernelByte[i]);
             if(i<4)hash[i]=kernelByte[i];
             else hash[i%4]^=kernelByte[i];

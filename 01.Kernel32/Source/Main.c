@@ -8,10 +8,12 @@
 
 #include "Types.h"
 #include "Page.h"
+#include "ModeSwitch.h"
 
 void kPrintString( int iX, int iY, const char* pcString );
 BOOL kInitializeKernel64Area( void );
 BOOL kIsMemoryEnough( void );
+void kCopyKernel64ImageTo2Mbyte( void );
 
 /**
  *  ï¿½Æ·ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ C ï¿½ï¿½ï¿? Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ï¿½
@@ -20,8 +22,10 @@ BOOL kIsMemoryEnough( void );
 void Main( void )
 {
     DWORD i;
+    DWORD dwEAX, dwEBX, dwECX, dwEDX;
+    char vcVendorString[ 13 ] = { 0, };
 
-    kPrintString( 0, 4, "C Language Kernel Start...................[Pass]" );
+    kPrintString( 0, 4, "Protected Mode C Language Kernel Start......[Pass]" );
 
     // ÃÖ¼Ò ¸Þ¸ð¸® Å©±â¸¦ ¸¸Á·ÇÏ´Â Áö °Ë»ç
     kPrintString( 0, 5, "Minimum Memory Size Check...................[    ]" );
@@ -50,6 +54,37 @@ void Main( void )
     kPrintString( 0, 7, "IA-32e Page Tables Initialize...............[    ]" );
     kInitializePageTables();
     kPrintString( 45, 7, "Pass" );
+
+    // ??¡¤?¨«¨«¨«¡© ???¢Ò?? ?¢æ¨¬? ?¨¢¡¾?
+    kReadCPUID( 0x00, &dwEAX, &dwEBX, &dwECX, &dwEDX );
+    *( DWORD* ) vcVendorString = dwEBX;
+    *( ( DWORD* ) vcVendorString + 1 ) = dwEDX;
+    *( ( DWORD* ) vcVendorString + 2 ) = dwECX;
+    kPrintString( 0, 8, "Processor Vendor String.....................[            ]" );
+    kPrintString( 45, 8, vcVendorString );
+    
+    // 64¨¬?¨¡¢ç ??¢¯©ª ??©ö? ?¢ç??
+    kReadCPUID( 0x80000001, &dwEAX, &dwEBX, &dwECX, &dwEDX );
+    kPrintString( 0, 9, "64bit Mode Support Check....................[    ]" );
+    if( dwEDX & ( 1 << 29 ) )
+    {
+        kPrintString( 45, 9, "Pass" );
+    }
+    else
+    {
+        kPrintString( 45, 9, "Fail" );
+        kPrintString( 0, 10, "This processor does not support 64bit mode~!!" );
+        while( 1 ) ;
+    }
+    
+    // IA-32e ?©£?? ?¢¯©ø??? 0x200000(2Mbyte) ????¡¤©ö©«¨¬¡¤? ???¢¯
+    kPrintString( 0, 10, "Copy IA-32e Kernel To 2M Address............[    ]" );
+    kCopyKernel64ImageTo2Mbyte();
+    kPrintString( 45, 10, "Pass" );
+    
+    // IA-32e ?©£??¡¤? ????
+    kPrintString( 0, 11, "Switch To IA-32e Mode" );
+    kSwitchAndExecute64bitKernel();
 
     while( 1 ) ;
 }
@@ -120,4 +155,29 @@ BOOL kIsMemoryEnough( void )
         pdwCurrentAddress += ( 0x100000 / 4 );
     }
     return TRUE;
+}
+
+/**
+ *  IA-32e ?©£?? ?¢¯©ø??? 0x200000(2Mbyte) ????¡¤©ö©«¨¬¢¯¢® ¨¬©ö??
+ */
+void kCopyKernel64ImageTo2Mbyte( void )
+{
+    WORD wKernel32SectorCount, wTotalKernelSectorCount;
+    DWORD* pdwSourceAddress,* pdwDestinationAddress;
+    int i;
+    
+    // 0x7C05¢¯¢® ?? ?¢¯©ø? ¨«©«?? ¨«?, 0x7C07¢¯¢® ¨¬??? ?©£?? ?¢¯©ø? ¨«©«?? ¨«?¡Æ¢® ???? ???©«
+    wTotalKernelSectorCount = *( ( WORD* ) 0x7C05 );
+    wKernel32SectorCount = *( ( WORD* ) 0x7C07 );
+
+    pdwSourceAddress = ( DWORD* ) ( 0x10000 + ( wKernel32SectorCount * 512 ) );
+    pdwDestinationAddress = ( DWORD* ) 0x200000;
+    // IA-32e ?©£?? ?¢¯©ø? ¨«©«?? ??¡¾????¡© ¨¬©ö??
+    for( i = 0 ; i < 512 * ( wTotalKernelSectorCount - wKernel32SectorCount ) / 4;
+        i++ )
+    {
+        *pdwDestinationAddress = *pdwSourceAddress;
+        pdwDestinationAddress++;
+        pdwSourceAddress++;
+    }
 }
