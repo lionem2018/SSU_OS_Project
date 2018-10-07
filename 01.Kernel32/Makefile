@@ -9,7 +9,7 @@
 # �����Ϸ� �� ��Ŀ ����
 NASM32 = nasm
 GCC32 = gcc -c -m32 -ffreestanding
-LD32 = ld -melf_i386 -T ../elf_i386.x -nostdlib -e Main -Ttext 0x10204
+LD32 = ld -melf_i386 -T ../elf_i386.x -nostdlib -e Main -Ttext 0x10200
 #.txt start 
 
 # ���̳ʸ� �̹��� ������ ���� OBJCOPY �ɼ� ����

@@ -3,39 +3,192 @@
  *  date    2008/12/14
  *  author  kkamagui 
  *          Copyright(c)2008 All rights reserved by kkamagui
- *  brief   C ï¿½ï¿½ï¿½ï¿½ ï¿½Û¼ï¿½ï¿½ï¿½ Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+ *  brief   C ¾ð¾î·Î ÀÛ¼ºµÈ Ä¿³ÎÀÇ ¿£Æ®¸® Æ÷ÀÎÆ® ÆÄÀÏ
  */
 
 #include "Types.h"
+#include "Page.h"
+#include "ModeSwitch.h"
 
+// ÇÔ¼ö ¼±¾ð
 void kPrintString( int iX, int iY, const char* pcString );
+BOOL kInitializeKernel64Area( void );
+BOOL kIsMemoryEnough( void );
+void kCopyKernel64ImageTo2Mbyte( void );
 
 /**
- *  ï¿½Æ·ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ C ï¿½ï¿½ï¿? Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ï¿½
- *      ï¿½Ýµï¿½ï¿? ï¿½Ù¸ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ ï¿½ï¿½
+ *  ¾Æ·¡ ÇÔ¼ö´Â C ¾ð¾î Ä¿³ÎÀÇ ½ÃÀÛ ºÎºÐÀÓ
+ *      ¹Ýµå½Ã ´Ù¸¥ ÇÔ¼öµé º¸´Ù °¡Àå ¾ÕÂÊ¿¡ Á¸ÀçÇØ¾ß ÇÔ
  */
 void Main( void )
 {
-    kPrintString( 0, 4, "C Language Kernel Started~!!!" );
+    DWORD i;
+    DWORD dwEAX, dwEBX, dwECX, dwEDX;
+    char vcVendorString[ 13 ] = { 0, };
+    
+    kPrintString( 0, 3, "Protected Mode C Language Kernel Start......[Pass]" );
+    
+    // ÃÖ¼Ò ¸Þ¸ð¸® Å©±â¸¦ ¸¸Á·ÇÏ´Â Áö °Ë»ç
+    kPrintString( 0, 4, "Minimum Memory Size Check...................[    ]" );
+    if( kIsMemoryEnough() == FALSE )
+    {
+        kPrintString( 45, 4, "Fail" );
+        kPrintString( 0, 5, "Not Enough Memory~!! MINT64 OS Requires Over "
+                "64Mbyte Memory~!!" );
+        while( 1 ) ;
+    }
+    else
+    {
+        kPrintString( 45, 4, "Pass" );
+    }
+    
+    // IA-32e ¸ðµåÀÇ Ä¿³Î ¿µ¿ªÀ» ÃÊ±âÈ­
+    kPrintString( 0, 5, "IA-32e Kernel Area Initialize...............[    ]" );
+    if( kInitializeKernel64Area() == FALSE )
+    {
+        kPrintString( 45, 5, "Fail" );
+        kPrintString( 0, 6, "Kernel Area Initialization Fail~!!" );
+        while( 1 ) ;
+    }
+    kPrintString( 45, 5, "Pass" );
 
+    // IA-32e ¸ðµå Ä¿³ÎÀ» À§ÇÑ ÆäÀÌÁö Å×ÀÌºí »ý¼º
+    kPrintString( 0, 6, "IA-32e Page Tables Initialize...............[    ]" );
+    kInitializePageTables();
+    kPrintString( 45, 6, "Pass" );
+    
+    // ÇÁ·Î¼¼¼­ Á¦Á¶»ç Á¤º¸ ÀÐ±â
+    kReadCPUID( 0x00, &dwEAX, &dwEBX, &dwECX, &dwEDX );
+    *( DWORD* ) vcVendorString = dwEBX;
+    *( ( DWORD* ) vcVendorString + 1 ) = dwEDX;
+    *( ( DWORD* ) vcVendorString + 2 ) = dwECX;
+    kPrintString( 0, 7, "Processor Vendor String.....................[            ]" );
+    kPrintString( 45, 7, vcVendorString );
+    
+    // 64ºñÆ® Áö¿ø À¯¹« È®ÀÎ
+    kReadCPUID( 0x80000001, &dwEAX, &dwEBX, &dwECX, &dwEDX );
+    kPrintString( 0, 8, "64bit Mode Support Check....................[    ]" );
+    if( dwEDX & ( 1 << 29 ) )
+    {
+        kPrintString( 45, 8, "Pass" );
+    }
+    else
+    {
+        kPrintString( 45, 8, "Fail" );
+        kPrintString( 0, 9, "This processor does not support 64bit mode~!!" );
+        while( 1 ) ;
+    }
+    
+    // IA-32e ¸ðµå Ä¿³ÎÀ» 0x200000(2Mbyte) ¾îµå·¹½º·Î ÀÌµ¿
+    kPrintString( 0, 9, "Copy IA-32e Kernel To 2M Address............[    ]" );
+    kCopyKernel64ImageTo2Mbyte();
+    kPrintString( 45, 9, "Pass" );
+    
+    // IA-32e ¸ðµå·Î ÀüÈ¯
+    kPrintString( 0, 10, "Switch To IA-32e Mode" );
+    kSwitchAndExecute64bitKernel();
+    
     while( 1 ) ;
 }
 
 /**
- *  ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ X, Y ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿?
+ *  ¹®ÀÚ¿­À» X, Y À§Ä¡¿¡ Ãâ·Â
  */
 void kPrintString( int iX, int iY, const char* pcString )
 {
     CHARACTER* pstScreen = ( CHARACTER* ) 0xB8000;
     int i;
     
-    // X, Y ï¿½ï¿½Ç¥ï¿½ï¿½ ï¿½Ì¿ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿? ï¿½ï¿½å·¹ï¿½ï¿½ï¿½ï¿? ï¿½ï¿½ï¿?
+    // X, Y ÁÂÇ¥¸¦ ÀÌ¿ëÇØ¼­ ¹®ÀÚ¿­À» Ãâ·ÂÇÒ ¾îµå·¹½º¸¦ °è»ê
     pstScreen += ( iY * 80 ) + iX;
     
-    // NULLï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½ ï¿½ï¿½ï¿?
+    // NULLÀÌ ³ª¿Ã ¶§±îÁö ¹®ÀÚ¿­ Ãâ·Â
     for( i = 0 ; pcString[ i ] != 0 ; i++ )
     {
         pstScreen[ i ].bCharactor = pcString[ i ];
     }
 }
 
+/**
+ *  IA-32e ¸ðµå¿ë Ä¿³Î ¿µ¿ªÀ» 0À¸·Î ÃÊ±âÈ­
+ *      1Mbyte ~ 6Mbyte±îÁö ¿µ¿ªÀ» ÃÊ±âÈ­
+ */
+BOOL kInitializeKernel64Area( void )
+{
+    DWORD* pdwCurrentAddress;
+    
+    // ÃÊ±âÈ­¸¦ ½ÃÀÛÇÒ ¾îµå·¹½ºÀÎ 0x100000(1MB)À» ¼³Á¤
+    pdwCurrentAddress = ( DWORD* ) 0x100000;
+    
+    // ¸¶Áö¸· ¾îµå·¹½ºÀÎ 0x600000(6MB)±îÁö ·çÇÁ¸¦ µ¹¸é¼­ 4¹ÙÀÌÆ®¾¿ 0À¸·Î Ã¤¿ò
+    while( ( DWORD ) pdwCurrentAddress < 0x600000 )
+    {        
+        *pdwCurrentAddress = 0x00;
+
+        // 0À¸·Î ÀúÀåÇÑ ÈÄ ´Ù½Ã ÀÐ¾úÀ» ¶§ 0ÀÌ ³ª¿ÀÁö ¾ÊÀ¸¸é ÇØ´ç ¾îµå·¹½º¸¦ 
+        // »ç¿ëÇÏ´Âµ¥ ¹®Á¦°¡ »ý±ä °ÍÀÌ¹Ç·Î ´õÀÌ»ó ÁøÇàÇÏÁö ¾Ê°í Á¾·á
+        if( *pdwCurrentAddress != 0 )
+        {
+            return FALSE;
+        }
+        
+        // ´ÙÀ½ ¾îµå·¹½º·Î ÀÌµ¿
+        pdwCurrentAddress++;
+    }
+    
+    return TRUE;
+}
+
+/**
+ *  MINT64 OS¸¦ ½ÇÇàÇÏ±â¿¡ ÃæºÐÇÑ ¸Þ¸ð¸®¸¦ °¡Áö°í ÀÖ´ÂÁö Ã¼Å©
+ *      64Mbyte ÀÌ»óÀÇ ¸Þ¸ð¸®¸¦ °¡Áö°í ÀÖ´ÂÁö °Ë»ç
+ */
+BOOL kIsMemoryEnough( void )
+{
+    DWORD* pdwCurrentAddress;
+   
+    // 0x100000(1MB)ºÎÅÍ °Ë»ç ½ÃÀÛ
+    pdwCurrentAddress = ( DWORD* ) 0x100000;
+    
+    // 0x4000000(64MB)±îÁö ·çÇÁ¸¦ µ¹¸é¼­ È®ÀÎ
+    while( ( DWORD ) pdwCurrentAddress < 0x4000000 )
+    {
+        *pdwCurrentAddress = 0x12345678;
+        
+        // 0x12345678·Î ÀúÀåÇÑ ÈÄ ´Ù½Ã ÀÐ¾úÀ» ¶§ 0x12345678ÀÌ ³ª¿ÀÁö ¾ÊÀ¸¸é 
+        // ÇØ´ç ¾îµå·¹½º¸¦ »ç¿ëÇÏ´Âµ¥ ¹®Á¦°¡ »ý±ä °ÍÀÌ¹Ç·Î ´õÀÌ»ó ÁøÇàÇÏÁö ¾Ê°í Á¾·á
+        if( *pdwCurrentAddress != 0x12345678 )
+        {
+           return FALSE;
+        }
+        
+        // 1MB¾¿ ÀÌµ¿ÇÏ¸é¼­ È®ÀÎ
+        pdwCurrentAddress += ( 0x100000 / 4 );
+    }
+    return TRUE;
+}
+
+/**
+ *  IA-32e ¸ðµå Ä¿³ÎÀ» 0x200000(2Mbyte) ¾îµå·¹½º¿¡ º¹»ç
+ */
+void kCopyKernel64ImageTo2Mbyte( void )
+{
+    WORD wKernel32SectorCount, wTotalKernelSectorCount;
+    DWORD* pdwSourceAddress,* pdwDestinationAddress;
+    int i;
+    
+    // 0x7C05¿¡ ÃÑ Ä¿³Î ¼½ÅÍ ¼ö, 0x7C07¿¡ º¸È£ ¸ðµå Ä¿³Î ¼½ÅÍ ¼ö°¡ µé¾î ÀÖÀ½
+    wTotalKernelSectorCount = *( ( WORD* ) 0x7C05 );
+    wKernel32SectorCount = *( ( WORD* ) 0x7C07 );
+
+    pdwSourceAddress = ( DWORD* ) ( 0x10000 + ( wKernel32SectorCount * 512 ) );
+    pdwDestinationAddress = ( DWORD* ) 0x200000;
+    // IA-32e ¸ðµå Ä¿³Î ¼½ÅÍ Å©±â¸¸Å­ º¹»ç
+    for( i = 0 ; i < 512 * ( wTotalKernelSectorCount - wKernel32SectorCount ) / 4;
+        i++ )
+    {
+        *pdwDestinationAddress = *pdwSourceAddress;
+        pdwDestinationAddress++;
+        pdwSourceAddress++;
+    }
+}
