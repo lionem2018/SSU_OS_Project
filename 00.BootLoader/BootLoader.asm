@@ -178,7 +178,7 @@ CALCULATEHASHLOOP:
     add di, 0x04
     
     ; 2?„¹?„°(1024ë°”ì´?Š¸)ë¥? ëª¨ë‘ ?—°?‚°?•  ?•Œê¹Œì?? ë£¨í”„ ?ˆ˜?–‰
-    cmp di, 1024
+    cmp di, 1536
     jb CALCULATEHASHLOOP
 
 ; 4ë°”ì´?Š¸?˜ ?•´?‹œê°? ì¶œë ¥

@@ -177,7 +177,7 @@ int CopyFile( int iSourceFd, int iTargetFd , int IsKernel )
     int check=0;
     int ReadByte;
 
-    char kernelByte[1024]={0};
+    char kernelByte[1536]={0};
     char hash[4]={0};
     
     if(IsKernel==1){
@@ -207,7 +207,7 @@ int CopyFile( int iSourceFd, int iTargetFd , int IsKernel )
             if(i!=3) hash >>= 8;
         }*/
         
-        for(int i=0;i<1024;i++){
+        for(int i=0;i<1536;i++){
             //printf("%d %01X %01X %01X\n",i,hash[i%4],kernelByte[i],hash[i%4]^kernelByte[i]);
             if(i<4)hash[i]=kernelByte[i];
             else hash[i%4]^=kernelByte[i];
