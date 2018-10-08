@@ -3,7 +3,7 @@
  *  date    2008/12/28
  *  author  kkamagui 
  *          Copyright(c)2008 All rights reserved by kkamagui
- *  brief   ÆäÀÌÂ¡¿¡ °ü·ÃµÈ °¢Á¾ Á¤º¸¸¦ Á¤ÀÇÇÑ ÆÄÀÏ
+ *  brief   ï¿½ï¿½ï¿½ï¿½Â¡ï¿½ï¿½ ï¿½ï¿½ï¿½Ãµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
  */
 
 #ifndef __PAGE_H__
@@ -13,13 +13,13 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// ¸ÅÅ©·Î
+// ï¿½ï¿½Å©ï¿½ï¿½
 //
 ////////////////////////////////////////////////////////////////////////////////
-// ÇÏÀ§ 32ºñÆ®¿ë ¼Ó¼º ÇÊµå
+// ï¿½ï¿½ï¿½ï¿½ 32ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ó¼ï¿½ ï¿½Êµï¿½
 #define PAGE_FLAGS_P        0x00000001  // Present
 #define PAGE_FLAGS_RW       0x00000002  // Read/Write
-#define PAGE_FLAGS_US       0x00000004  // User/Supervisor(ÇÃ·¡±× ¼³Á¤ ½Ã À¯Àú ·¹º§)
+#define PAGE_FLAGS_US       0x00000004  // User/Supervisor(ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
 #define PAGE_FLAGS_PWT      0x00000008  // Page Level Write-through
 #define PAGE_FLAGS_PCD      0x00000010  // Page Level Cache Disable
 #define PAGE_FLAGS_A        0x00000020  // Accessed
@@ -27,34 +27,34 @@
 #define PAGE_FLAGS_PS       0x00000080  // Page Size
 #define PAGE_FLAGS_G        0x00000100  // Global
 #define PAGE_FLAGS_PAT      0x00001000  // Page Attribute Table Index
-// »óÀ§ 32ºñÆ®¿ë ¼Ó¼º ÇÊµå
-#define PAGE_FLAGS_EXB      0x80000000  // Execute Disable ºñÆ®  
-// ¾Æ·¡´Â ÆíÀÇ¸¦ À§ÇØ Á¤ÀÇÇÑ ÇÃ·¡±×
+// ï¿½ï¿½ï¿½ï¿½ 32ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ó¼ï¿½ ï¿½Êµï¿½
+#define PAGE_FLAGS_EXB      0x80000000  // Execute Disable ï¿½ï¿½Æ®  
+// ï¿½Æ·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ç¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½
 #define PAGE_FLAGS_DEFAULT  ( PAGE_FLAGS_P | PAGE_FLAGS_RW )
 
-// ±âÅ¸ ÆäÀÌÂ¡ °ü·Ã
+// ï¿½ï¿½Å¸ ï¿½ï¿½ï¿½ï¿½Â¡ ï¿½ï¿½ï¿½ï¿½
 #define PAGE_TABLESIZE      0x1000
 #define PAGE_MAXENTRYCOUNT  512
 #define PAGE_DEFAULTSIZE    0x200000
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// ±¸Á¶Ã¼
+// ï¿½ï¿½ï¿½ï¿½Ã¼
 //
 ////////////////////////////////////////////////////////////////////////////////
 #pragma pack( push, 1 )
 
-// ÆäÀÌÁö ¿£Æ®¸®¿¡ ´ëÇÑ ÀÚ·á±¸Á¶
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ú·á±¸ï¿½ï¿½
 typedef struct kPageTableEntryStruct
 {
-    // PML4T¿Í PDPTEÀÇ °æ¿ì
-    // 1 ºñÆ® P, RW, US, PWT, PCD, A, 3 ºñÆ® Reserved, 3 ºñÆ® Avail, 
-    // 20 ºñÆ® Base Address
-    // PDEÀÇ °æ¿ì
-    // 1 ºñÆ® P, RW, US, PWT, PCD, A, D, 1, G, 3 ºñÆ® Avail, 1 ºñÆ® PAT, 8 ºñÆ® Avail, 
-    // 11 ºñÆ® Base Address
+    // PML4Tï¿½ï¿½ PDPTEï¿½ï¿½ ï¿½ï¿½ï¿½
+    // 1 ï¿½ï¿½Æ® P, RW, US, PWT, PCD, A, 3 ï¿½ï¿½Æ® Reserved, 3 ï¿½ï¿½Æ® Avail, 
+    // 20 ï¿½ï¿½Æ® Base Address
+    // PDEï¿½ï¿½ ï¿½ï¿½ï¿½
+    // 1 ï¿½ï¿½Æ® P, RW, US, PWT, PCD, A, D, 1, G, 3 ï¿½ï¿½Æ® Avail, 1 ï¿½ï¿½Æ® PAT, 8 ï¿½ï¿½Æ® Avail, 
+    // 11 ï¿½ï¿½Æ® Base Address
     DWORD dwAttributeAndLowerBaseAddress;
-    // 8 ºñÆ® Upper BaseAddress, 12 ºñÆ® Reserved, 11 ºñÆ® Avail, 1 ºñÆ® EXB 
+    // 8 ï¿½ï¿½Æ® Upper BaseAddress, 12 ï¿½ï¿½Æ® Reserved, 11 ï¿½ï¿½Æ® Avail, 1 ï¿½ï¿½Æ® EXB 
     DWORD dwUpperBaseAddressAndEXB;
 } PML4TENTRY, PDPTENTRY, PDENTRY, PTENTRY;
 
@@ -62,7 +62,7 @@ typedef struct kPageTableEntryStruct
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  ÇÔ¼ö
+//  ï¿½Ô¼ï¿½
 //
 ////////////////////////////////////////////////////////////////////////////////
 void kInitializePageTables( void );
