@@ -86,6 +86,7 @@ void Main( void )
     
     // IA-32e 모드로 전환
     kPrintString( 0, 10, "Switch To IA-32e Mode" );
+    kPrintString2(0,13,"AB8000 wow");
     kSwitchAndExecute64bitKernel();
     
     while( 1 ) ;
@@ -97,6 +98,41 @@ void Main( void )
 void kPrintString( int iX, int iY, const char* pcString )
 {
     CHARACTER* pstScreen = ( CHARACTER* ) 0xB8000;
+    int i;
+    
+    // X, Y 좌표를 이용해서 문자열을 출력할 어드레스를 계산
+    pstScreen += ( iY * 80 ) + iX;
+    
+    // NULL이 나올 때까지 문자열 출력
+    for( i = 0 ; pcString[ i ] != 0 ; i++ )
+    {
+        pstScreen[ i ].bCharactor = pcString[ i ];
+    }
+}
+
+void kPrintString2(int iX, int iY, const char* pcString)
+{
+    PDENTRY* pstPDEntry = ( PDENTRY* ) 0x102000;
+    PDENTRY* pageEntry = pstPDEntry + 40;
+    DWORD* dstEntry = (((*pageEntry).dwUpperBaseAddressAndEXB & 0xFF) << 11) + ((*pageEntry).dwAttributeAndLowerBaseAddress >> 21);
+    dstEntry += 0xB8000;
+    *dstEntry = 0xB8000;
+
+    CHARACTER* pstScreen = ( CHARACTER* ) 0xB8000;
+    pstScreen += ( 16 * 80 );
+    DWORD* tmp = dstEntry;
+    for(int i = 0 ; i < 32 ; i++ )
+    {
+         if(i%4 == 0)
+            pstScreen += 1;
+
+        pstScreen[ i ].bCharactor = ((int)tmp & 0x1) + '0';
+        tmp = (int) tmp >> 1;
+
+    }
+
+    
+    pstScreen = ( CHARACTER* ) 0xAB8000;
     int i;
     
     // X, Y 좌표를 이용해서 문자열을 출력할 어드레스를 계산
