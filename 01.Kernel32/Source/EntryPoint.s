@@ -39,7 +39,7 @@ START:
     ; Disable Paging, Disable Cache, Internal FPU, Disable Align Check, 
     ; Enable ProtectedMode
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    mov eax, 0x4000003B ; PG=0, CD=1, NW=0, AM=0, WP=1, NE=1, ET=1, TS=1, EM=0, MP=1, PE=1
+    mov eax, 0x4001003B ; PG=0, CD=1, NW=0, AM=0, WP=1, NE=1, ET=1, TS=1, EM=0, MP=1, PE=1
     mov cr0, eax        ; CR0 ��Ʈ�� �������Ϳ� ������ ������ �÷��׸� �����Ͽ� 
                         ; ��ȣ ���� ��ȯ   0x4001003B
 
