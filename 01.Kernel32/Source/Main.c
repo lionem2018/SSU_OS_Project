@@ -12,6 +12,7 @@
 
 // 함수 선언
 void kPrintString( int iX, int iY, const char* pcString );
+void kPrintString2( int iX, int iY, const char* pcString );
 BOOL kInitializeKernel64Area( void );
 BOOL kIsMemoryEnough( void );
 void kCopyKernel64ImageTo2Mbyte( void );
@@ -86,7 +87,7 @@ void Main( void )
     
     // IA-32e 모드로 전환
     kPrintString( 0, 10, "Switch To IA-32e Mode" );
-    kPrintString2(0,13,"AB8000 wow");
+    kPrintString2(0, 13, "AB8000 wow");
     kSwitchAndExecute64bitKernel();
     
     while( 1 ) ;
@@ -112,27 +113,29 @@ void kPrintString( int iX, int iY, const char* pcString )
 
 void kPrintString2(int iX, int iY, const char* pcString)
 {
-    PDENTRY* pstPDEntry = ( PDENTRY* ) 0x102000;
-    PDENTRY* pageEntry = pstPDEntry + 40;
-    DWORD* dstEntry = (((*pageEntry).dwUpperBaseAddressAndEXB & 0xFF) << 11) + ((*pageEntry).dwAttributeAndLowerBaseAddress >> 21);
-    dstEntry += 0xB8000;
-    *dstEntry = 0xB8000;
+    // PDENTRY* pstPDEntry = ( PDENTRY* ) 0x102000;
+    // PDENTRY* pageEntry = pstPDEntry + 5;
 
-    CHARACTER* pstScreen = ( CHARACTER* ) 0xB8000;
-    pstScreen += ( 16 * 80 );
-    DWORD* tmp = dstEntry;
-    for(int i = 0 ; i < 32 ; i++ )
-    {
-         if(i%4 == 0)
-            pstScreen += 1;
+    // pageEntry->dwAttributeAndLowerBaseAddress = 0x000000 | PAGE_FLAGS_DEFAULT | PAGE_FLAGS_PS;
+    // pageEntry->dwUpperBaseAddressAndEXB = ( 0x000000 & 0xFF ) | 0x00;
+    // DWORD* dstEntry = (((*pageEntry).dwUpperBaseAddressAndEXB & 0xFF) << 11) + ((*pageEntry).dwAttributeAndLowerBaseAddress >> 21);
+    // // *dstEntry = 0xB8000;
 
-        pstScreen[ i ].bCharactor = ((int)tmp & 0x1) + '0';
-        tmp = (int) tmp >> 1;
+    // CHARACTER* pstScreen = ( CHARACTER* ) 0xB8000;
+    // pstScreen += ( 16 * 80 );
+    // DWORD tmp = (DWORD) dstEntry;
+    // for(int i = 0 ; i < 32 ; i++ )
+    // {
+    //      if(i%4 == 0)
+    //         pstScreen += 1;
 
-    }
+    //     pstScreen[ i ].bCharactor = ((int)tmp & 0x1) + '0';
+    //     tmp = (int) tmp >> 1;
+
+    // }
 
     
-    pstScreen = ( CHARACTER* ) 0xAB8000;
+    CHARACTER* pstScreen = ( CHARACTER* ) 0xAB8000;
     int i;
     
     // X, Y 좌표를 이용해서 문자열을 출력할 어드레스를 계산

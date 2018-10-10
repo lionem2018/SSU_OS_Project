@@ -56,7 +56,21 @@ void kInitializePageTables( void )
 				( i * ( PAGE_DEFAULTSIZE >> 20 ) ) >> 12, dwMappingAddress, 
 				PAGE_FLAGS_DEFAULT | PAGE_FLAGS_PS, 0 );
 		dwMappingAddress += PAGE_DEFAULTSIZE;
-	}	
+	}
+
+	// set VA AB8000 = PA B8000
+	PDENTRY* tmpPDEntry = ( PDENTRY* ) 0x102000;
+    tmpPDEntry = tmpPDEntry + 5;
+
+    tmpPDEntry->dwAttributeAndLowerBaseAddress = 0x000000 | PAGE_FLAGS_DEFAULT | PAGE_FLAGS_PS;
+    tmpPDEntry->dwUpperBaseAddressAndEXB = ( 0x000000 & 0xFF ) | 0x00;
+
+	tmpPDEntry = ( PDENTRY* ) 0x1ff000;
+	dwMappingAddress = 0;
+	for( i = 0 ; i < PAGE_MAXENTRYCOUNT ; i++ )
+	{
+		kSetPageEntryData( &( tmpPDEntry[ i ] ), 0, 0, 0, 0 );
+	}
 }
 
 /**
