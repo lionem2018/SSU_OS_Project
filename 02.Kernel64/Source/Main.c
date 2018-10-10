@@ -10,7 +10,7 @@
 
 // �Լ� ����
 void kPrintString( int iX, int iY, const char* pcString );
-void kPrintString2();
+void kPrintString2(  int iX, int iY, const char* pcString );
 
 /**
  *  �Ʒ� �Լ��� C ��� Ŀ���� ���� �κ���
@@ -21,22 +21,9 @@ void Main( void )
     DWORD tmp;
     kPrintString( 0, 11, "Switch To IA-32e Mode Success~!!" );
     kPrintString( 0, 12, "IA-32e C Language Kernel Start..............[Pass]" );
-    kPrintString2();
-    //tmp = AcessReadOnly -> dwAttributeAndLowerBaseAddress;
-    //kPrintString2( 0, 14);
-    //AcessReadOnly -> dwAttributeAndLowerBaseAddress = AcessReadOnly -> dwAttributeAndLowerBaseAddress | 0x2;
-    //kPrintString2(0 , 13);
-    /*
-    tmp = x & 0xff00;
-    CHARACTER* pstScreen = ( CHARACTER* ) 0xB8000;
-    pstScreen += (16 * 80);
-    for(int i = 0; i < 32; i++){
-       if ( i % 4 == 0)
-         pstScreen += 1;
-    
-    pstScreen [ i ].bCharactor = ((int) tmp & 0x1 ) + '0';
-    tmp = (int) tmp >> 1;
-   }*/
+    kPrintString2( 0, 13 , "This message is printed through the video memory relocated to 0xAB8000" );
+    	    
+
 }
 
 /**
@@ -57,13 +44,24 @@ void kPrintString( int iX, int iY, const char* pcString )
     }
 }
 
-void kPrintString2(){
+void kPrintString2(int iX, int iY, const char* pcString){
    DWORD* AcessReadOnly = ( DWORD* ) 0x1ff000;
 
-   *AcessReadOnly = 0x12345678;
+   //*AcessReadOnly = 0x12345678;
 
-   if( *AcessReadOnly == 0x12345678 ){
-       kPrintString(0, 13 , "test");
-   }
+   //if( *AcessReadOnly == 0x12345678 ){
+    //   kPrintString(0, 13 , "test");
+   //}
+   CHARACTER* pstScreen = ( CHARACTER* ) 0xAB8000;
+    int i;
+    
+    // X, Y 좌표를 이용해서 문자열을 출력할 어드레스를 계산
+    pstScreen += ( iY * 80 ) + iX;
+    
+    // NULL이 나올 때까지 문자열 출력
+    for( i = 0 ; pcString[ i ] != 0 ; i++ )
+    {
+        pstScreen[ i ].bCharactor = pcString[ i ];
+    }
 
 }

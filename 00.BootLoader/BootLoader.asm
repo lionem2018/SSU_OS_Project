@@ -180,7 +180,7 @@ CALCULATEHASHLOOP:
     add di, 0x04
     
     ; sector value * n
-    cmp di,2560
+    cmp di, 3072
     jb CALCULATEHASHLOOP
 
 ; 4바이?��?�� ?��?���? 출력

@@ -21,7 +21,7 @@
 
 #define BYTESOFSECTOR  512
 
-#define TOTALSECTOR 512 * 5
+#define TOTALSECTOR 512 * 6
 
 // ?��?��?��?�� ?��?��?��?��?��?��
 int AdjustInSectorSize( int iFd, int iSourceSize );
