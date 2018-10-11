@@ -21,7 +21,11 @@ void Main( void )
     DWORD tmp;
     kPrintString( 0, 11, "Switch To IA-32e Mode Success~!!" );
     kPrintString( 0, 12, "IA-32e C Language Kernel Start..............[Pass]" );
+    
+    // print test on 0xAB8000 (another virtual video address)
     kPrintStringOn0xAB8000( 0, 13, "This message is printed through the video memory relocated to 0xAB8000" );
+    
+    // write test at 0x1FF000 (occur error)
     kWriteTestAt0x1FF000();
 }
 
