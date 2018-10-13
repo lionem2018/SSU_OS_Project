@@ -68,14 +68,12 @@ void kInitializePageTables( void )
 	}
 
 	kSetPageEntryData( &( tmpPTEntry[ PAGE_MAXENTRYCOUNT-1 ] ), 0, 0x1ff000, PAGE_FLAGS_P, 0 );
-	
 
 	// set VA AB8000 = PA B8000
 	PDENTRY* tmpPDEntry = ( PDENTRY* ) 0x102000;
     tmpPDEntry = tmpPDEntry + 5;
 
-    tmpPDEntry->dwAttributeAndLowerBaseAddress = 0x000000 | PAGE_FLAGS_DEFAULT | PAGE_FLAGS_PS;
-    tmpPDEntry->dwUpperBaseAddressAndEXB = ( 0x000000 & 0xFF ) | 0x00;
+	kSetPageEntryData( tmpPDEntry, 0, 0x00, PAGE_FLAGS_DEFAULT | PAGE_FLAGS_PS, 0 );
 }
 
 /**
