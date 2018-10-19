@@ -197,7 +197,6 @@ int CopyFile( int iSourceFd, int iTargetFd , int IsKernel )
     iSourceFileSize = 0;
 
 
-    //int hash=0;
     char hashBuff[ 4 ]={ 0 };
     char FbyteChar[ 4 ]={ 0 };
     int FbyteInt=0;
@@ -208,34 +207,11 @@ int CopyFile( int iSourceFd, int iTargetFd , int IsKernel )
     char hash[4]={0};
     
     if(IsKernel==1){
-      /*while(1){
-            ReadByte = read(iSourceFd,FbyteChar,4);
-            for(int i=0;i<4;i++){
-                int tmp=FbyteChar[i]&0xFF;
-                //printf(" %d ",tmp);
-                FbyteInt |= tmp;
-                if(i!=3) FbyteInt <<= 8;
-            }
-            //printf("\nInt:%d ",FbyteInt);
-            if(check==0)
-            hash=FbyteInt;
-            else
-                hash^=FbyteInt;
-
-            if(ReadByte!=4) break;
-        }*/
         read(iSourceFd,kernelByte,sizeof(kernelByte));
 
         lseek(iSourceFd,0,SEEK_SET);
         
-        /*for(int i=0;i<4;i++){
-            int tmp=hash&0xFF;
-            hashBuff[i] |= tmp;
-            if(i!=3) hash >>= 8;
-        }*/
-        
         for(int i = 0;i< TOTALSECTOR; i++){
-            //printf("%d %01X %01X %01X\n",i,hash[i%4],kernelByte[i],hash[i%4]^kernelByte[i]);
             if(i < 4) hash[i]=kernelByte[i];
             else hash[i%4]^=kernelByte[i];
         }
@@ -248,7 +224,6 @@ int CopyFile( int iSourceFd, int iTargetFd , int IsKernel )
         }
         
         iSourceFileSize = write(iTargetFd, hash, sizeof(hash));
-        printf("%d\n",iSourceFileSize);
     }
 
 
@@ -256,10 +231,6 @@ int CopyFile( int iSourceFd, int iTargetFd , int IsKernel )
     {
         iRead   = read( iSourceFd, vcBuffer, sizeof( vcBuffer ) );
         iWrite  = write( iTargetFd, vcBuffer, iRead );
-
-        
-        printf("\n%d %d\n",iRead,sizeof(vcBuffer));
-
 
         if( iRead != iWrite )
         {
