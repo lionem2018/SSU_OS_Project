@@ -7,6 +7,7 @@
  */
 
 #include "Types.h"
+#include "Keyboard.h"
 
 // ï¿½Ô¼ï¿½ ï¿½ï¿½ï¿½ï¿½
 void kPrintString( int iX, int iY, const char* pcString );
@@ -18,15 +19,54 @@ void kWriteTestAt0x1FF000();
  */
 void Main( void )
 {
-    DWORD tmp;
+    char vcTemp[ 2 ] = { 0, };
+    BYTE bFlags;
+    BYTE bTemp;
+    int i = 0;
+
     kPrintString( 0, 11, "Switch To IA-32e Mode Success~!!" );
     kPrintString( 0, 12, "IA-32e C Language Kernel Start..............[Pass]" );
-    
+
     // print test on 0xAB8000 (another virtual video address)
     kPrintStringOn0xAB8000( 0, 13, "This message is printed through the video memory relocated to 0xAB8000" );
     
     // write test at 0x1FF000 (occur error)
-    kWriteTestAt0x1FF000();
+    //kWriteTestAt0x1FF000();
+
+    kPrintString( 0, 14, "Keybord Activate............................[    ]" );
+
+    // ?¡Æ¨¬????? ?¡Æ¨«¨¬?¡©
+    if( kActivateKeyboard() == TRUE )
+    {
+        kPrintString( 45, 14, "Pass" );
+        kChangeKeyboardLED( FALSE, FALSE, FALSE );
+    }
+    else
+    {
+        kPrintString( 45, 14, "Fail" );
+        while( 1 ) ;
+    }
+    
+    while( 1 )
+    {
+        // ??¡¤? ©ö?¨¡?(¨¡¡À¨¡¢ç 0x60)¡Æ¢® ?¡À ?????? ©«¨¬?? ?????? ?¨¢?? ¨«? ???©«
+        if( kIsOutputBufferFull() == TRUE )
+        {
+            // ??¡¤? ©ö?¨¡?(¨¡¡À¨¡¢ç 0x60)¢¯¢®¨«¡© ©«¨¬?? ?????? ?¨¢??¨«¡© ????
+            bTemp = kGetKeyboardScanCode();
+            
+            // ©«¨¬?? ?????? ASCII ????¡¤? ¨¬??????? ??¨«??? ??????¢¯? ASCII ????¢¯?
+            // ?¡©?©÷ ¢Ò??? ¢Ò©ø???? ?¢æ¨¬??? ©ö???
+            if( kConvertScanCodeToASCIICode( bTemp, &( vcTemp[ 0 ] ), &bFlags ) == TRUE )
+            {
+                // ?¡Æ¡Æ¢® ?¡©¡¤??©ø???? ?¡Æ?? ASCII ???? ¡Æ¨£?? ?¡©??¢¯¢® ??¡¤?
+                if( bFlags & KEY_FLAGS_DOWN )
+                {
+                    kPrintString( i++, 15, vcTemp );
+                }
+            }
+        }
+    }
 }
 
 /**
