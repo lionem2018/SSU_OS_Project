@@ -11,20 +11,11 @@
 /**
  *	IA-32e ���? Ŀ���� ���� ������ ���̺� ����
  */
-void kSetProtectionPageTableEntry( void )
+void kModifyPageTableEntryFlags( void )
 {
 	PDENTRY* tmpPTEntry = (PDENTRY *) 0x142000;
-	DWORD flags = (tmpPTEntry[PAGE_MAXENTRYCOUNT].dwAttributeAndLowerBaseAddress & 0x1FFF) | PAGE_FLAGS_P;
 
 	kSetPageEntryData( &( tmpPTEntry[ PAGE_MAXENTRYCOUNT-1 ] ), 0, 0x1ff000, PAGE_FLAGS_DEFAULT, 0 );
-}
-
-void kSetRWPageTableEntry( void )
-{
-	PDENTRY* tmpPTEntry = (PDENTRY *) 0x142000;
-	DWORD flags = (tmpPTEntry[PAGE_MAXENTRYCOUNT].dwAttributeAndLowerBaseAddress & 0x1FFF) | PAGE_FLAGS_RW;
-
-	kSetPageEntryData( &( tmpPTEntry[ PAGE_MAXENTRYCOUNT-1 ] ), 0, 0x1ff000, flags, 0 );
 }
 
 /**

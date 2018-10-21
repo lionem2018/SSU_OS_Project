@@ -129,6 +129,9 @@ void kPageFaultExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
     getFaultAddress();
     
     register long decimal asm("rdx");
+
+    DWORD * ErrorCode = (DWORD * ) 0x7FFFD0;
+    _Bool isProtection = (*ErrorCode) & 0x1;
  
     int position = 0;
     while (1)
@@ -164,21 +167,17 @@ void kPageFaultExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
     vcBuffer[ 1 ] = '0' + iVectorNumber % 10;
 
     kPrintString( 0, 0, "====================================================" );
-    kPrintString( 0, 1, "           Page Fault Exception Occur~!!!!          " );
-    kPrintString( 0, 2, "                    Address:                        " );
+    if(isProtection)
+        kPrintString( 0, 1, "           Page Fault Exception Occur~!!!!          " );
+    else
+    {
+        kPrintString( 0, 1, "        Protection Fault Exception Occur~!!!!       " );
+    }
+    
+    kPrintString( 0, 2, "                  Address:                        " );
     kPrintString( 27, 2, faultAddress );
     kPrintString( 0, 3, "====================================================" );
 
-    DWORD * ErrorCode = (DWORD * ) 0x7FFFD0;
-    _Bool isProtection = (*ErrorCode) & 0x1;
 
-    if(isProtection)
-        kPrintString(19, 0, "PROTECTION");
-    else
-    {
-        kPrintString(19, 0, "NON-PROTECTION");
-    }
-
-    kSetProtectionPageTableEntry();
-    //kSetRWPageTableEntry();
+    kModifyPageTableEntryFlags();
 }
