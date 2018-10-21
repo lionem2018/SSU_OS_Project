@@ -180,4 +180,5 @@ void kPageFaultExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
 
 
     kModifyPageTableEntryFlags();
+    invlpg(faultAddress);
 }
