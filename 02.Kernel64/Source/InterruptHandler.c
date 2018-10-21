@@ -16,6 +16,41 @@
 void kCommonExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
 {
     char vcBuffer[ 3 ] = { 0, };
+    char hexadecimal[33]={0, };
+    char faultAddress[33]={'0','x'};
+
+    getFaultAddress();
+    
+    register long decimal asm("rdx");
+ 
+    int position = 0;
+    while (1)
+    {
+        int mod = decimal % 16;    // 16으로 나누었을 때 나머지를 구함
+        if (mod < 10) // 나머지가 10보다 작으면
+        {
+            // 숫자 0의 ASCII 코드 값 48 + 나머지
+            hexadecimal[position] = 48 + mod;
+        }
+        else    // 나머지가 10보다 크거나 같으면
+        {
+            // 나머지에서 10을 뺀 값과 영문 대문자 A의 ASCII 코드 값 65를 더함
+            hexadecimal[position] = 97 + (mod - 10);
+        }
+
+        decimal = decimal / 16;    // 16으로 나눈 몫을 저장
+
+        position++;    // 자릿수 변경
+
+        if (decimal == 0)    // 몫이 0이되면 반복을 끝냄
+            break;
+    }
+
+    int idx=2;
+    int p=position-1;
+    while(p>=0){
+        faultAddress[idx++]=hexadecimal[p--];
+    }
 
     // 인터럽트 벡터를 화면 오른쪽 위에 2자리 정수로 출력
     vcBuffer[ 0 ] = '0' + iVectorNumber / 10;
@@ -23,8 +58,8 @@ void kCommonExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
 
     kPrintString( 0, 0, "====================================================" );
     kPrintString( 0, 1, "                 Exception Occur~!!!!               " );
-    kPrintString( 0, 2, "                    Vector:                         " );
-    kPrintString( 27, 2, vcBuffer );
+    kPrintString( 0, 2, "                    Address:                        " );
+    kPrintString( 27, 2, faultAddress );
     kPrintString( 0, 3, "====================================================" );
 
     while( 1 ) ;
