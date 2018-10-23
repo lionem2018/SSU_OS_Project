@@ -47,11 +47,12 @@ void kPrintString( int iX, int iY, const char* pcString )
 void kPrintString2(int iX, int iY, const char* pcString){
    DWORD* AcessReadOnly = ( DWORD* ) 0x1ff000;
 
-   //*AcessReadOnly = 0x12345678;
+   *AcessReadOnly = 0x12345678;
 
    //if( *AcessReadOnly == 0x12345678 ){
     //   kPrintString(0, 13 , "test");
    //}
+   /*
    CHARACTER* pstScreen = ( CHARACTER* ) 0xAB8000;
     int i;
     
@@ -63,5 +64,7 @@ void kPrintString2(int iX, int iY, const char* pcString){
     {
         pstScreen[ i ].bCharactor = pcString[ i ];
     }
+    */
+    
 
 }
