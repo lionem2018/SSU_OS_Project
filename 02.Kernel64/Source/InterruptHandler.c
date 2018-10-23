@@ -168,17 +168,18 @@ void kPageFaultExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
 
     kPrintString( 0, 0, "====================================================" );
     if(isProtection)
-        kPrintString( 0, 1, "           Page Fault Exception Occur~!!!!          " );
+        kPrintString( 0, 1, "          Protection Fault Occur~!!!!         " );
     else
     {
-        kPrintString( 0, 1, "        Protection Fault Exception Occur~!!!!       " );
+        kPrintString( 0, 1, "             Page Fault Occur~!!!!            " );
     }
     
-    kPrintString( 0, 2, "                  Address:                        " );
-    kPrintString( 27, 2, faultAddress );
+    kPrintString( 0, 2, "                Address:                        " );
+    kPrintString( 25, 2, faultAddress );
     kPrintString( 0, 3, "====================================================" );
 
 
     kModifyPageTableEntryFlags();
-    invlpg(faultAddress);
+    
+    
 }

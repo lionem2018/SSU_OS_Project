@@ -47,4 +47,5 @@ void kModifyPageTableEntryFlags( void );
 void kSetPageEntryData( PTENTRY* pstEntry, DWORD dwUpperBaseAddress,
         DWORD dwLowerBaseAddress, DWORD dwLowerFlags, DWORD dwUpperFlags );
 
+static inline void invlpg(void * m);
 #endif /*__PAGE_H__*/
