@@ -126,9 +126,9 @@ void kPageFaultExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
     char hexadecimal[33]={0, };
     char faultAddress[33]={'0','x'};
 
-    getFaultAddress();
+    QWORD decimal = getFaultAddress();
     
-    register long decimal asm("rdx");
+    //register long decimal asm("rdx");
 
     DWORD * ErrorCode = (DWORD * ) 0x7FFFD0;
     _Bool isProtection = (*ErrorCode) & 0x1;
