@@ -14,7 +14,7 @@
  */
 void kModifyPageTableEntryFlags( void )
 {
-	PDENTRY* tmpPTEntry = (PDENTRY *) 0x142000;
+	PDENTRY* tmpPTEntry = (PDENTRY *) 0x146000;
 
 	kSetPageEntryData( &( tmpPTEntry[ PAGE_MAXENTRYCOUNT-1 ] ), 0, 0x1ff000, PAGE_FLAGS_DEFAULT, 0 );
 
