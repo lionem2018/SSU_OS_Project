@@ -3,7 +3,7 @@
  *  date    2008/12/14
  *  author  kkamagui 
  *          Copyright(c)2008 All rights reserved by kkamagui
- *  brief   Ŀ�ο��� ����ϴ� ���� Ÿ���� ������ ����
+ *  brief   Ŀ�ο��� ����ϴ�? ���� Ÿ���� ������ ����
  */
 
 #ifndef __TYPES_H__
@@ -32,7 +32,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma pack( push, 1 )
 
-// ���� ��� �� �ؽ�Ʈ ��� ȭ���� �����ϴ� �ڷᱸ��
+// ���� ���? �� �ؽ�Ʈ ���? ȭ���� �����ϴ� �ڷᱸ��
 typedef struct kCharactorStruct
 {
     BYTE bCharactor;
@@ -43,7 +43,7 @@ typedef struct kPageTableEntryStruct
 {
     DWORD dwAttributeAndLowerBaseAddress; 
     DWORD dwUpperBaseAddressAndEXB;
-} PDENTRY;
+} PDENTRY, PML4TENTRY, PDPTENTRY, PTENTRY;
 
 #pragma pack( pop )
 
