@@ -84,7 +84,7 @@ kReadRFLAGS:
     ret
 
 getFaultAddress:
-    mov rdx, cr2
+    mov rax, cr2
     ret
 
 

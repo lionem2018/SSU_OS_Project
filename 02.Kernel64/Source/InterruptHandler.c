@@ -22,7 +22,7 @@ void kCommonExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
 
     getFaultAddress();
     
-    register long decimal asm("rdx");
+    register long decimal asm("rax");
  
     int position = 0;
     while (1)
@@ -179,7 +179,7 @@ void kPageFaultExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
     kPrintString( 0, 3, "====================================================" );
 
 
-    kModifyPageTableEntryFlags();
+    kModifyPageTableEntryFlags(decimal);
     
     
 }

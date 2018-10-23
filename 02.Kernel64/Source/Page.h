@@ -43,7 +43,7 @@
 //  �Լ�
 //
 ////////////////////////////////////////////////////////////////////////////////
-void kModifyPageTableEntryFlags( void );
+void kModifyPageTableEntryFlags( long );
 void kSetPageEntryData( PTENTRY* pstEntry, DWORD dwUpperBaseAddress,
         DWORD dwLowerBaseAddress, DWORD dwLowerFlags, DWORD dwUpperFlags );
 

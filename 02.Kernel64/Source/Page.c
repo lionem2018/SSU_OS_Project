@@ -12,11 +12,11 @@
 /**
  *	IA-32e ���? Ŀ���� ���� ������ ���̺� ����
  */
-void kModifyPageTableEntryFlags( void )
+void kModifyPageTableEntryFlags( long address )
 {
 	PDENTRY* tmpPTEntry = (PDENTRY *) 0x146000;
 
-	kSetPageEntryData( &( tmpPTEntry[ PAGE_MAXENTRYCOUNT-1 ] ), 0, 0x1ff000, PAGE_FLAGS_DEFAULT, 0 );
+	kSetPageEntryData( &( tmpPTEntry[ PAGE_MAXENTRYCOUNT-1 ] ), 0, address , PAGE_FLAGS_DEFAULT, 0 );
 
 	//DWORD * pt = (DWORD *)0x1ff000;
 	invlpg(0x1ff000);
