@@ -3,17 +3,17 @@
  *  date    2009/01/07
  *  author  kkamagui 
  *          Copyright(c)2008 All rights reserved by kkamagui
- *  brief   ¾î¼Àºí¸®¾î À¯Æ¿¸®Æ¼ ÇÔ¼öµéÀ» Á¤ÀÇÇÑ Çì´õ ÆÄÀÏ
+ *  brief   ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¿ï¿½ï¿½Æ¼ ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
  */
 
 #ifndef __ASSEMBLYUTILITY_H__
 #define __ASSEMBLYUTILITY_H__
 
 #include "Types.h"
-
+#include "Task.h"
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  ÇÔ¼ö
+//  ï¿½Ô¼ï¿½
 //
 ////////////////////////////////////////////////////////////////////////////////
 BYTE kInPortByte( WORD wPort );
@@ -26,5 +26,6 @@ void kEnableInterrupt( void );
 void kDisableInterrupt( void );
 QWORD kReadRFLAGS( void );  
 QWORD getFaultAddress(void);
-
+QWORD kReadTSC( void );
+void kSwitchContext( CONTEXT* pstCurrentContext, CONTEXT* pstNextContext );
 #endif /*__ASSEMBLYUTILITY_H__*/

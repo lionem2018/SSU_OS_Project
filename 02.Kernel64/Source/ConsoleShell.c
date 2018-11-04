@@ -3,15 +3,18 @@
  *  date    2009/01/31
  *  author  kkamagui 
  *          Copyright(c)2008 All rights reserved by kkamagui
- *  brief   ÄÜ¼Ö ¼Ð¿¡ °ü·ÃµÈ ¼Ò½º ÆÄÀÏ
+ *  brief   ï¿½Ü¼ï¿½ ï¿½Ð¿ï¿½ ï¿½ï¿½ï¿½Ãµï¿½ ï¿½Ò½ï¿½ ï¿½ï¿½ï¿½ï¿½
  */
 
 #include "ConsoleShell.h"
 #include "Console.h"
 #include "Keyboard.h"
 #include "Utility.h"
+#include "PIT.h"
+#include "RTC.h"
+#include "AssemblyUtility.h"
 
-// Ä¿¸Çµå Å×ÀÌºí Á¤ÀÇ
+// Ä¿ï¿½Çµï¿½ ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½
 SHELLCOMMANDENTRY gs_vstCommandTable[] =
 {
         { "help", "Show Help", kHelp },
@@ -19,13 +22,20 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         { "totalram", "Show Total RAM Size", kShowTotalRAMSize },
         { "strtod", "String To Decial/Hex Convert", kStringToDecimalHexTest },
         { "shutdown", "Shutdown And Reboot OS", kShutdown },
+        { "settimer", "Set PIT Controller Counter0, ex)settimer 10(ms) 1(periodic)", 
+                kSetTimer },
+        { "wait", "Wait ms Using PIT, ex)wait 100(ms)", kWaitUsingPIT },
+        { "rdtsc", "Read Time Stamp Counter", kReadTimeStampCounter },
+        { "cpuspeed", "Measure Processor Speed", kMeasureProcessorSpeed },
+        { "date", "Show Date And Time", kShowDateAndTime },
+        { "createtask", "Create Task", kCreateTestTask },
 };                                     
 
 //==============================================================================
-//  ½ÇÁ¦ ¼ÐÀ» ±¸¼ºÇÏ´Â ÄÚµå
+//  ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Úµï¿½
 //==============================================================================
 /**
- *  ¼ÐÀÇ ¸ÞÀÎ ·çÇÁ
+ *  ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
  */
 void kStartConsoleShell( void )
 {
@@ -34,44 +44,44 @@ void kStartConsoleShell( void )
     BYTE bKey;
     int iCursorX, iCursorY;
     
-    // ÇÁ·ÒÇÁÆ® Ãâ·Â
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½
     kPrintf( CONSOLESHELL_PROMPTMESSAGE );
     
     while( 1 )
     {
-        // Å°°¡ ¼ö½ÅµÉ ¶§±îÁö ´ë±â
+        // Å°ï¿½ï¿½ ï¿½ï¿½ï¿½Åµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
         bKey = kGetCh();
-        // Backspace Å° Ã³¸®
+        // Backspace Å° Ã³ï¿½ï¿½
         if( bKey == KEY_BACKSPACE )
         {
             if( iCommandBufferIndex > 0 )
             {
-                // ÇöÀç Ä¿¼­ À§Ä¡¸¦ ¾ò¾î¼­ ÇÑ ¹®ÀÚ ¾ÕÀ¸·Î ÀÌµ¿ÇÑ ´ÙÀ½ °ø¹éÀ» Ãâ·ÂÇÏ°í 
-                // Ä¿¸Çµå ¹öÆÛ¿¡¼­ ¸¶Áö¸· ¹®ÀÚ »èÁ¦
+                // ï¿½ï¿½ï¿½ï¿½ Ä¿ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½î¼­ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ 
+                // Ä¿ï¿½Çµï¿½ ï¿½ï¿½ï¿½Û¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
                 kGetCursor( &iCursorX, &iCursorY );
                 kPrintStringXY( iCursorX - 1, iCursorY, " " );
                 kSetCursor( iCursorX - 1, iCursorY );
                 iCommandBufferIndex--;
             }
         }
-        // ¿£ÅÍ Å° Ã³¸®
+        // ï¿½ï¿½ï¿½ï¿½ Å° Ã³ï¿½ï¿½
         else if( bKey == KEY_ENTER )
         {
             kPrintf( "\n" );
             
             if( iCommandBufferIndex > 0 )
             {
-                // Ä¿¸Çµå ¹öÆÛ¿¡ ÀÖ´Â ¸í·ÉÀ» ½ÇÇà
+                // Ä¿ï¿½Çµï¿½ ï¿½ï¿½ï¿½Û¿ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
                 vcCommandBuffer[ iCommandBufferIndex ] = '\0';
                 kExecuteCommand( vcCommandBuffer );
             }
             
-            // ÇÁ·ÒÇÁÆ® Ãâ·Â ¹× Ä¿¸Çµå ¹öÆÛ ÃÊ±âÈ­
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ ï¿½ï¿½ Ä¿ï¿½Çµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
             kPrintf( "%s", CONSOLESHELL_PROMPTMESSAGE );            
             kMemSet( vcCommandBuffer, '\0', CONSOLESHELL_MAXCOMMANDBUFFERCOUNT );
             iCommandBufferIndex = 0;
         }
-        // ½ÃÇÁÆ® Å°, CAPS Lock, NUM Lock, Scroll LockÀº ¹«½Ã
+        // ï¿½ï¿½ï¿½ï¿½Æ® Å°, CAPS Lock, NUM Lock, Scroll Lockï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         else if( ( bKey == KEY_LSHIFT ) || ( bKey == KEY_RSHIFT ) ||
                  ( bKey == KEY_CAPSLOCK ) || ( bKey == KEY_NUMLOCK ) ||
                  ( bKey == KEY_SCROLLLOCK ) )
@@ -80,13 +90,13 @@ void kStartConsoleShell( void )
         }
         else
         {
-            // TABÀº °ø¹éÀ¸·Î ÀüÈ¯
+            // TABï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
             if( bKey == KEY_TAB )
             {
                 bKey = ' ';
             }
             
-            // ¹öÆÛ¿¡ °ø°£ÀÌ ³²¾ÆÀÖÀ» ¶§¸¸ °¡´É
+            // ï¿½ï¿½ï¿½Û¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             if( iCommandBufferIndex < CONSOLESHELL_MAXCOMMANDBUFFERCOUNT )
             {
                 vcCommandBuffer[ iCommandBufferIndex++ ] = bKey;
@@ -97,7 +107,7 @@ void kStartConsoleShell( void )
 }
 
 /*
- *  Ä¿¸Çµå ¹öÆÛ¿¡ ÀÖ´Â Ä¿¸Çµå¸¦ ºñ±³ÇÏ¿© ÇØ´ç Ä¿¸Çµå¸¦ Ã³¸®ÇÏ´Â ÇÔ¼ö¸¦ ¼öÇà
+ *  Ä¿ï¿½Çµï¿½ ï¿½ï¿½ï¿½Û¿ï¿½ ï¿½Ö´ï¿½ Ä¿ï¿½Çµå¸¦ ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½Ø´ï¿½ Ä¿ï¿½Çµå¸¦ Ã³ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
  */
 void kExecuteCommand( const char* pcCommandBuffer )
 {
@@ -105,7 +115,7 @@ void kExecuteCommand( const char* pcCommandBuffer )
     int iCommandBufferLength, iCommandLength;
     int iCount;
     
-    // °ø¹éÀ¸·Î ±¸ºÐµÈ Ä¿¸Çµå¸¦ ÃßÃâ
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ðµï¿½ Ä¿ï¿½Çµå¸¦ ï¿½ï¿½ï¿½ï¿½
     iCommandBufferLength = kStrLen( pcCommandBuffer );
     for( iSpaceIndex = 0 ; iSpaceIndex < iCommandBufferLength ; iSpaceIndex++ )
     {
@@ -115,12 +125,12 @@ void kExecuteCommand( const char* pcCommandBuffer )
         }
     }
     
-    // Ä¿¸Çµå Å×ÀÌºíÀ» °Ë»çÇØ¼­ µ¿ÀÏÇÑ ÀÌ¸§ÀÇ Ä¿¸Çµå°¡ ÀÖ´ÂÁö È®ÀÎ
+    // Ä¿ï¿½Çµï¿½ ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ Ä¿ï¿½Çµå°¡ ï¿½Ö´ï¿½ï¿½ï¿½ È®ï¿½ï¿½
     iCount = sizeof( gs_vstCommandTable ) / sizeof( SHELLCOMMANDENTRY );
     for( i = 0 ; i < iCount ; i++ )
     {
         iCommandLength = kStrLen( gs_vstCommandTable[ i ].pcCommand );
-        // Ä¿¸ÇµåÀÇ ±æÀÌ¿Í ³»¿ëÀÌ ¿ÏÀüÈ÷ ÀÏÄ¡ÇÏ´ÂÁö °Ë»ç
+        // Ä¿ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½Ï´ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
         if( ( iCommandLength == iSpaceIndex ) &&
             ( kMemCmp( gs_vstCommandTable[ i ].pcCommand, pcCommandBuffer,
                        iSpaceIndex ) == 0 ) )
@@ -130,7 +140,7 @@ void kExecuteCommand( const char* pcCommandBuffer )
         }
     }
 
-    // ¸®½ºÆ®¿¡¼­ Ã£À» ¼ö ¾ø´Ù¸é ¿¡·¯ Ãâ·Â
+    // ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
     if( i >= iCount )
     {
         kPrintf( "'%s' is not found.\n", pcCommandBuffer );
@@ -138,7 +148,7 @@ void kExecuteCommand( const char* pcCommandBuffer )
 }
 
 /**
- *  ÆÄ¶ó¹ÌÅÍ ÀÚ·á±¸Á¶¸¦ ÃÊ±âÈ­
+ *  ï¿½Ä¶ï¿½ï¿½ï¿½ï¿½ ï¿½Ú·á±¸ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
  */
 void kInitializeParameter( PARAMETERLIST* pstList, const char* pcParameter )
 {
@@ -148,20 +158,20 @@ void kInitializeParameter( PARAMETERLIST* pstList, const char* pcParameter )
 }
 
 /**
- *  °ø¹éÀ¸·Î ±¸ºÐµÈ ÆÄ¶ó¹ÌÅÍÀÇ ³»¿ë°ú ±æÀÌ¸¦ ¹ÝÈ¯
+ *  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ðµï¿½ ï¿½Ä¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½È¯
  */
 int kGetNextParameter( PARAMETERLIST* pstList, char* pcParameter )
 {
     int i;
     int iLength;
 
-    // ´õ ÀÌ»ó ÆÄ¶ó¹ÌÅÍ°¡ ¾øÀ¸¸é ³ª°¨
+    // ï¿½ï¿½ ï¿½Ì»ï¿½ ï¿½Ä¶ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     if( pstList->iLength <= pstList->iCurrentPosition )
     {
         return 0;
     }
     
-    // ¹öÆÛÀÇ ±æÀÌ¸¸Å­ ÀÌµ¿ÇÏ¸é¼­ °ø¹éÀ» °Ë»ö
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¸ï¿½Å­ ï¿½Ìµï¿½ï¿½Ï¸é¼­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
     for( i = pstList->iCurrentPosition ; i < pstList->iLength ; i++ )
     {
         if( pstList->pcBuffer[ i ] == ' ' )
@@ -170,21 +180,21 @@ int kGetNextParameter( PARAMETERLIST* pstList, char* pcParameter )
         }
     }
     
-    // ÆÄ¶ó¹ÌÅÍ¸¦ º¹»çÇÏ°í ±æÀÌ¸¦ ¹ÝÈ¯
+    // ï¿½Ä¶ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½È¯
     kMemCpy( pcParameter, pstList->pcBuffer + pstList->iCurrentPosition, i );
     iLength = i - pstList->iCurrentPosition;
     pcParameter[ iLength ] = '\0';
 
-    // ÆÄ¶ó¹ÌÅÍÀÇ À§Ä¡ ¾÷µ¥ÀÌÆ®
+    // ï¿½Ä¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
     pstList->iCurrentPosition += iLength + 1;
     return iLength;
 }
     
 //==============================================================================
-//  Ä¿¸Çµå¸¦ Ã³¸®ÇÏ´Â ÄÚµå
+//  Ä¿ï¿½Çµå¸¦ Ã³ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Úµï¿½
 //==============================================================================
 /**
- *  ¼Ð µµ¿ò¸»À» Ãâ·Â
+ *  ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
  */
 void kHelp( const char* pcCommandBuffer )
 {
@@ -200,7 +210,7 @@ void kHelp( const char* pcCommandBuffer )
     
     iCount = sizeof( gs_vstCommandTable ) / sizeof( SHELLCOMMANDENTRY );
 
-    // °¡Àå ±ä Ä¿¸ÇµåÀÇ ±æÀÌ¸¦ °è»ê
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ Ä¿ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½
     for( i = 0 ; i < iCount ; i++ )
     {
         iLength = kStrLen( gs_vstCommandTable[ i ].pcCommand );
@@ -210,7 +220,7 @@ void kHelp( const char* pcCommandBuffer )
         }
     }
     
-    // µµ¿ò¸» Ãâ·Â
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
     for( i = 0 ; i < iCount ; i++ )
     {
         kPrintf( "%s", gs_vstCommandTable[ i ].pcCommand );
@@ -221,17 +231,17 @@ void kHelp( const char* pcCommandBuffer )
 }
 
 /**
- *  È­¸éÀ» Áö¿ò 
+ *  È­ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 
  */
 void kCls( const char* pcParameterBuffer )
 {
-    // ¸Ç À­ÁÙÀº µð¹ö±ë ¿ëÀ¸·Î »ç¿ëÇÏ¹Ç·Î È­¸éÀ» Áö¿î ÈÄ, ¶óÀÎ 1·Î Ä¿¼­ ÀÌµ¿
+    // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï¹Ç·ï¿½ È­ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ Ä¿ï¿½ï¿½ ï¿½Ìµï¿½
     kClearScreen();
     kSetCursor( 0, 1 );
 }
 
 /**
- *  ÃÑ ¸Þ¸ð¸® Å©±â¸¦ Ãâ·Â
+ *  ï¿½ï¿½ ï¿½Þ¸ï¿½ Å©ï¿½â¸¦ ï¿½ï¿½ï¿½
  */
 void kShowTotalRAMSize( const char* pcParameterBuffer )
 {
@@ -239,7 +249,7 @@ void kShowTotalRAMSize( const char* pcParameterBuffer )
 }
 
 /**
- *  ¹®ÀÚ¿­·Î µÈ ¼ýÀÚ¸¦ ¼ýÀÚ·Î º¯È¯ÇÏ¿© È­¸é¿¡ Ãâ·Â
+ *  ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Ú¸ï¿½ ï¿½ï¿½ï¿½Ú·ï¿½ ï¿½ï¿½È¯ï¿½Ï¿ï¿½ È­ï¿½é¿¡ ï¿½ï¿½ï¿½
  */
 void kStringToDecimalHexTest( const char* pcParameterBuffer )
 {
@@ -249,25 +259,25 @@ void kStringToDecimalHexTest( const char* pcParameterBuffer )
     int iCount = 0;
     long lValue;
     
-    // ÆÄ¶ó¹ÌÅÍ ÃÊ±âÈ­
+    // ï¿½Ä¶ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
     kInitializeParameter( &stList, pcParameterBuffer );
     
     while( 1 )
     {
-        // ´ÙÀ½ ÆÄ¶ó¹ÌÅÍ¸¦ ±¸ÇÔ, ÆÄ¶ó¹ÌÅÍÀÇ ±æÀÌ°¡ 0ÀÌ¸é ÆÄ¶ó¹ÌÅÍ°¡ ¾ø´Â °ÍÀÌ¹Ç·Î
-        // Á¾·á
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½Ä¶ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½Ä¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì°ï¿½ 0ï¿½Ì¸ï¿½ ï¿½Ä¶ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¹Ç·ï¿½
+        // ï¿½ï¿½ï¿½ï¿½
         iLength = kGetNextParameter( &stList, vcParameter );
         if( iLength == 0 )
         {
             break;
         }
 
-        // ÆÄ¶ó¹ÌÅÍ¿¡ ´ëÇÑ Á¤º¸¸¦ Ãâ·ÂÇÏ°í 16Áø¼öÀÎÁö 10Áø¼öÀÎÁö ÆÇ´ÜÇÏ¿© º¯È¯ÇÑ ÈÄ
-        // °á°ú¸¦ printf·Î Ãâ·Â
+        // ï¿½Ä¶ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ 16ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 10ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ printfï¿½ï¿½ ï¿½ï¿½ï¿½
         kPrintf( "Param %d = '%s', Length = %d, ", iCount + 1, 
                  vcParameter, iLength );
 
-        // 0x·Î ½ÃÀÛÇÏ¸é 16Áø¼ö, ±×¿Ü´Â 10Áø¼ö·Î ÆÇ´Ü
+        // 0xï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ 16ï¿½ï¿½ï¿½ï¿½, ï¿½×¿Ü´ï¿½ 10ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½
         if( kMemCmp( vcParameter, "0x", 2 ) == 0 )
         {
             lValue = kAToI( vcParameter + 2, 16 );
@@ -284,14 +294,185 @@ void kStringToDecimalHexTest( const char* pcParameterBuffer )
 }
 
 /**
- *  PC¸¦ Àç½ÃÀÛ(Reboot)
+ *  PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½(Reboot)
  */
 void kShutdown( const char* pcParamegerBuffer )
 {
     kPrintf( "System Shutdown Start...\n" );
     
-    // Å°º¸µå ÄÁÆ®·Ñ·¯¸¦ ÅëÇØ PC¸¦ Àç½ÃÀÛ
+    // Å°ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½Ñ·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
     kPrintf( "Press Any Key To Reboot PC..." );
     kGetCh();
     kReboot();
+}
+
+/**
+ *  PIT ì»¨íŠ¸ë¡¤ëŸ¬ì˜ ì¹´ìš´í„° 0 ì„¤ì •
+ */
+void kSetTimer( const char* pcParameterBuffer )
+{
+    char vcParameter[ 100 ];
+    PARAMETERLIST stList;
+    long lValue;
+    BOOL bPeriodic;
+
+    // íŒŒë¼ë¯¸í„° ì´ˆê¸°í™”
+    kInitializeParameter( &stList, pcParameterBuffer );
+    
+    // milisecond ì¶”ì¶œ
+    if( kGetNextParameter( &stList, vcParameter ) == 0 )
+    {
+        kPrintf( "ex)settimer 10(ms) 1(periodic)\n" );
+        return ;
+    }
+    lValue = kAToI( vcParameter, 10 );
+
+    // Periodic ì¶”ì¶œ
+    if( kGetNextParameter( &stList, vcParameter ) == 0 )
+    {
+        kPrintf( "ex)settimer 10(ms) 1(periodic)\n" );
+        return ;
+    }    
+    bPeriodic = kAToI( vcParameter, 10 );
+    
+    kInitializePIT( MSTOCOUNT( lValue ), bPeriodic );
+    kPrintf( "Time = %d ms, Periodic = %d Change Complete\n", lValue, bPeriodic );
+}
+
+/**
+ *  PIT ì»¨íŠ¸ë¡¤ëŸ¬ë¥¼ ì§ì ‘ ì‚¬ìš©í•˜ì—¬ ms ë™ì•ˆ ëŒ€ê¸°  
+ */
+void kWaitUsingPIT( const char* pcParameterBuffer )
+{
+    char vcParameter[ 100 ];
+    int iLength;
+    PARAMETERLIST stList;
+    long lMillisecond;
+    int i;
+    
+    // íŒŒë¼ë¯¸í„° ì´ˆê¸°í™”
+    kInitializeParameter( &stList, pcParameterBuffer );
+    if( kGetNextParameter( &stList, vcParameter ) == 0 )
+    {
+        kPrintf( "ex)wait 100(ms)\n" );
+        return ;
+    }
+    
+    lMillisecond = kAToI( pcParameterBuffer, 10 );
+    kPrintf( "%d ms Sleep Start...\n", lMillisecond );
+    
+    // ì¸í„°ëŸ½íŠ¸ë¥¼ ë¹„í™œì„±í™”í•˜ê³  PIT ì»¨íŠ¸ë¡¤ëŸ¬ë¥¼ í†µí•´ ì§ì ‘ ì‹œê°„ì„ ì¸¡ì •
+    kDisableInterrupt();
+    for( i = 0 ; i < lMillisecond / 30 ; i++ )
+    {
+        kWaitUsingDirectPIT( MSTOCOUNT( 30 ) );
+    }
+    kWaitUsingDirectPIT( MSTOCOUNT( lMillisecond % 30 ) );   
+    kEnableInterrupt();
+    kPrintf( "%d ms Sleep Complete\n", lMillisecond );
+    
+    // íƒ€ì´ë¨¸ ë³µì›
+    kInitializePIT( MSTOCOUNT( 1 ), TRUE );
+}
+
+/**
+ *  íƒ€ìž„ ìŠ¤íƒ¬í”„ ì¹´ìš´í„°ë¥¼ ì½ìŒ  
+ */
+void kReadTimeStampCounter( const char* pcParameterBuffer )
+{
+    QWORD qwTSC;
+    
+    qwTSC = kReadTSC();
+    kPrintf( "Time Stamp Counter = %q\n", qwTSC );
+}
+
+/**
+ *  í”„ë¡œì„¸ì„œì˜ ì†ë„ë¥¼ ì¸¡ì •
+ */
+void kMeasureProcessorSpeed( const char* pcParameterBuffer )
+{
+    int i;
+    QWORD qwLastTSC, qwTotalTSC = 0;
+        
+    kPrintf( "Now Measuring." );
+    
+    // 10ì´ˆ ë™ì•ˆ ë³€í™”í•œ íƒ€ìž„ ìŠ¤íƒ¬í”„ ì¹´ìš´í„°ë¥¼ ì´ìš©í•˜ì—¬ í”„ë¡œì„¸ì„œì˜ ì†ë„ë¥¼ ê°„ì ‘ì ìœ¼ë¡œ ì¸¡ì •
+    kDisableInterrupt();    
+    for( i = 0 ; i < 200 ; i++ )
+    {
+        qwLastTSC = kReadTSC();
+        kWaitUsingDirectPIT( MSTOCOUNT( 50 ) );
+        qwTotalTSC += kReadTSC() - qwLastTSC;
+
+        kPrintf( "." );
+    }
+    // íƒ€ì´ë¨¸ ë³µì›
+    kInitializePIT( MSTOCOUNT( 1 ), TRUE );    
+    kEnableInterrupt();
+    
+    kPrintf( "\nCPU Speed = %d MHz\n", qwTotalTSC / 10 / 1000 / 1000 );
+}
+
+/**
+ *  RTC ì»¨íŠ¸ë¡¤ëŸ¬ì— ì €ìž¥ëœ ì¼ìž ë° ì‹œê°„ ì •ë³´ë¥¼ í‘œì‹œ
+ */
+void kShowDateAndTime( const char* pcParameterBuffer )
+{
+    BYTE bSecond, bMinute, bHour;
+    BYTE bDayOfWeek, bDayOfMonth, bMonth;
+    WORD wYear;
+
+    // RTC ì»¨íŠ¸ë¡¤ëŸ¬ì—ì„œ ì‹œê°„ ë° ì¼ìžë¥¼ ì½ìŒ
+    kReadRTCTime( &bHour, &bMinute, &bSecond );
+    kReadRTCDate( &wYear, &bMonth, &bDayOfMonth, &bDayOfWeek );
+    
+    kPrintf( "Date: %d/%d/%d %s, ", wYear, bMonth, bDayOfMonth,
+             kConvertDayOfWeekToString( bDayOfWeek ) );
+    kPrintf( "Time: %d:%d:%d\n", bHour, bMinute, bSecond );
+}
+
+// TCB ìžë£Œêµ¬ì¡°ì™€ ìŠ¤íƒ ì •ì˜
+static TCB gs_vstTask[ 2 ] = { 0, };
+static QWORD gs_vstStack[ 1024 ] = { 0, };
+
+void kTestTask( void )
+{
+    int i = 0;
+    
+    while( 1 )
+    {
+        // ë©”ì‹œì§€ë¥¼ ì¶œë ¥í•˜ê³  í‚¤ ìž…ë ¥ì„ ëŒ€ê¸°
+        kPrintf( "[%d] This message is from kTestTask. Press any key to switch "
+                 "kConsoleShell~!!\n", i++ );
+        kGetCh();
+        
+        // ìœ„ì—ì„œ í‚¤ê°€ ìž…ë ¥ë˜ë©´ íƒœìŠ¤í¬ë¥¼ ì „í™˜
+        kSwitchContext( &( gs_vstTask[ 1 ].stContext ), &( gs_vstTask[ 0 ].stContext ) );
+    }
+}
+/**
+ *  íƒœìŠ¤í¬ë¥¼ ìƒì„±í•´ì„œ ë©€í‹° íƒœìŠ¤í‚¹ ìˆ˜í–‰
+ */
+void kCreateTestTask( const char* pcParameterBuffer )
+{
+    KEYDATA stData;
+    int i = 0;
+    
+    // íƒœìŠ¤í¬ ì„¤ì •
+    kSetUpTask( &( gs_vstTask[ 1 ] ), 1, 0, ( QWORD ) kTestTask, &( gs_vstStack ), 
+                sizeof( gs_vstStack ) );
+    
+    // 'q' í‚¤ê°€ ìž…ë ¥ë˜ì§€ ì•Šì„ ë•Œê¹Œì§€ ìˆ˜í–‰
+    while( 1 )
+    {
+        // ë©”ì‹œì§€ë¥¼ ì¶œë ¥í•˜ê³  í‚¤ ìž…ë ¥ì„ ëŒ€ê¸°
+        kPrintf( "[%d] This message is from kConsoleShell. Press any key to "
+                 "switch TestTask~!!\n", i++ );
+        if( kGetCh() == 'q' )
+        {
+            break;
+        }
+        // ìœ„ì—ì„œ í‚¤ê°€ ìž…ë ¥ë˜ë©´ íƒœìŠ¤í¬ë¥¼ ì „í™˜
+        kSwitchContext( &( gs_vstTask[ 0 ].stContext ), &( gs_vstTask[ 1 ].stContext ) );
+    }
 }
