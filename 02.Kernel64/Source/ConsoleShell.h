@@ -18,7 +18,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 #define CONSOLESHELL_MAXCOMMANDBUFFERCOUNT  300
 #define CONSOLESHELL_PROMPTMESSAGE          "MINT64>"
-
+#define CONSOLESHELL_RUNNINGTIME            "Running Time="
+#define CONSOLESHELL_CURRENTTIME            "Current Time="
 // ���ڿ� �����͸� �Ķ���ͷ� �޴� �Լ� ������ Ÿ�� ����
 typedef void ( * CommandFunction ) ( const char* pcParameter );
 
@@ -80,4 +81,5 @@ void kMeasureProcessorSpeed( const char* pcParameterBuffer );
 void kShowDateAndTime( const char* pcParameterBuffer );
 void kTestTask( void );
 void kCreateTestTask( const char* pcParameterBuffer );
+void kPrintTime();
 #endif /*__CONSOLESHELL_H__*/
