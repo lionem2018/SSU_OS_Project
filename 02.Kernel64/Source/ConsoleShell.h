@@ -72,6 +72,7 @@ void kCls( const char* pcParameterBuffer );
 void kShowTotalRAMSize( const char* pcParameterBuffer );
 void kStringToDecimalHexTest( const char* pcParameterBuffer );
 void kShutdown( const char* pcParamegerBuffer );
+void kSetCommandHistory( char (* historyList)[CONSOLESHELL_MAXCOMMANDBUFFERCOUNT], const char* command, int * count );
 void kSetTimer( const char* pcParameterBuffer );
 void kWaitUsingPIT( const char* pcParameterBuffer );
 void kReadTimeStampCounter( const char* pcParameterBuffer );

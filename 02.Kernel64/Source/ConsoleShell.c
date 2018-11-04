@@ -39,6 +39,8 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
  */
 void kStartConsoleShell( void )
 {
+    char vcCommandHistoryList[ 10 ][ CONSOLESHELL_MAXCOMMANDBUFFERCOUNT ];
+    int iHistoryCount = 0,iHistoryIndex = 0;
     char vcCommandBuffer[ CONSOLESHELL_MAXCOMMANDBUFFERCOUNT ];
     int iCommandBufferIndex = 0;
     BYTE bKey;
@@ -74,6 +76,10 @@ void kStartConsoleShell( void )
                 // Ŀ�ǵ� ���ۿ� �ִ� ����� ����
                 vcCommandBuffer[ iCommandBufferIndex ] = '\0';
                 kExecuteCommand( vcCommandBuffer );
+
+                kSetCommandHistory(vcCommandHistoryList, vcCommandBuffer, &iHistoryCount);
+                
+                iHistoryIndex = iHistoryCount;
             }
             
             // ������Ʈ ��� �� Ŀ�ǵ� ���� �ʱ�ȭ
@@ -88,15 +94,41 @@ void kStartConsoleShell( void )
         {
             ;
         }
+         else if ( bKey == KEY_UP || bKey == KEY_DOWN)
+        {
+            kGetCursor( &iCursorX, &iCursorY );
+
+            for(int i = 0; i < iCommandBufferIndex; i++)
+            {
+                iCursorX--;
+                kPrintStringXY( iCursorX, iCursorY, " " );
+            }
+
+            kSetCursor(iCursorX, iCursorY);
+
+            kMemSet( vcCommandBuffer, '\0', CONSOLESHELL_MAXCOMMANDBUFFERCOUNT );
+            iCommandBufferIndex = 0;
+
+            if( bKey == KEY_UP && iHistoryIndex > 0 )
+                iHistoryIndex--;
+            else if( bKey == KEY_DOWN && iHistoryIndex < iHistoryCount -1 )
+                iHistoryIndex++;
+
+            kPrintStringXY( iCursorX, iCursorY, vcCommandHistoryList[iHistoryIndex]);
+            kSetCursor( iCursorX + kStrLen(vcCommandHistoryList[iHistoryIndex]), iCursorY );
+            
+            kMemCpy(vcCommandBuffer, vcCommandHistoryList[iHistoryIndex], kStrLen(vcCommandHistoryList[iHistoryIndex]));
+            iCommandBufferIndex = kStrLen(vcCommandHistoryList[iHistoryIndex]);
+        }
         else
         {
-            // TAB�� �������� ��ȯ
+            // TAB은 공백으로 전환
             if( bKey == KEY_TAB )
             {
                 bKey = ' ';
             }
             
-            // ���ۿ� ������ �������� ���� ����
+            // 버퍼에 공간이 남아있을 때만 가능
             if( iCommandBufferIndex < CONSOLESHELL_MAXCOMMANDBUFFERCOUNT )
             {
                 vcCommandBuffer[ iCommandBufferIndex++ ] = bKey;
@@ -105,7 +137,6 @@ void kStartConsoleShell( void )
         }
     }
 }
-
 /*
  *  Ŀ�ǵ� ���ۿ� �ִ� Ŀ�ǵ带 ���Ͽ� �ش� Ŀ�ǵ带 ó���ϴ� �Լ��� ����
  */
@@ -306,6 +337,28 @@ void kShutdown( const char* pcParamegerBuffer )
     kReboot();
 }
 
+void kSetCommandHistory( char (* historyList)[CONSOLESHELL_MAXCOMMANDBUFFERCOUNT], const char* command, int * count )
+{
+    if (kMemCmp(historyList[(*count) - 1], command, kStrLen(command)))
+    {
+        if (*count < 10)
+        {
+            kMemCpy(historyList[(*count)], command, kStrLen(command));
+            (*count)++;
+        }
+        else
+        {
+            for (int i = 0; i < 9; i++)
+            {
+                kMemSet( historyList[i], '\0', CONSOLESHELL_MAXCOMMANDBUFFERCOUNT );
+                kMemCpy( historyList[i], historyList[i + 1], kStrLen(historyList[i + 1]) );
+            }
+
+            kMemSet( historyList[9], '\0', CONSOLESHELL_MAXCOMMANDBUFFERCOUNT );
+            kMemCpy(historyList[9], command, kStrLen(command));
+        }
+    }
+}
 /**
  *  PIT 컨트롤러의 카운터 0 설정
  */
