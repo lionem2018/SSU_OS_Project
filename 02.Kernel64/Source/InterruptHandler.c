@@ -3,7 +3,7 @@
  *  date    2009/01/24
  *  author  kkamagui
  *          Copyright(c)2008 All rights reserved by kkamagui
- *  brief   ���ͷ�Ʈ �� ���� �ڵ鷯�� ���õ� �ҽ� ����
+ *  brief   인터럽트 및 예외 핸들러에 관련된 소스 파일
  */
 
 #include "InterruptHandler.h"
@@ -11,9 +11,8 @@
 #include "Keyboard.h"
 #include "Page.h"
 #include "Console.h"
-
 /**
- *  �������� ����ϴ� ���� �ڵ鷯
+ *  공통으로 사용하는 예외 핸들러
  */
 void kCommonExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
 {
@@ -28,23 +27,23 @@ void kCommonExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
     int position = 0;
     while (1)
     {
-        int mod = decimal % 16;    // 16���� �������� �� �������� ����
-        if (mod < 10) // �������� 10���� ������
+        int mod = decimal % 16;    // 16으로 나누었을 때 나머지를 구함
+        if (mod < 10) // 나머지가 10보다 작으면
         {
-            // ���� 0�� ASCII �ڵ� �� 48 + ������
+            // 숫자 0의 ASCII 코드 값 48 + 나머지
             hexadecimal[position] = 48 + mod;
         }
-        else    // �������� 10���� ũ�ų� ������
+        else    // 나머지가 10보다 크거나 같으면
         {
-            // ���������� 10�� �� ���� ���� �빮�� A�� ASCII �ڵ� �� 65�� ����
+            // 나머지에서 10을 뺀 값과 영문 대문자 A의 ASCII 코드 값 65를 더함
             hexadecimal[position] = 97 + (mod - 10);
         }
 
-        decimal = decimal / 16;    // 16���� ���� ���� ����
+        decimal = decimal / 16;    // 16으로 나눈 몫을 저장
 
-        position++;    // �ڸ��� ����
+        position++;    // 자릿수 변경
 
-        if (decimal == 0)    // ���� 0�̵Ǹ� �ݺ��� ����
+        if (decimal == 0)    // 몫이 0이되면 반복을 끝냄
             break;
     }
 
@@ -54,7 +53,7 @@ void kCommonExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
         faultAddress[idx++]=hexadecimal[p--];
     }
 
-    // ���ͷ�Ʈ ���͸� ȭ�� ������ ���� 2�ڸ� ������ ���
+    // 인터럽트 벡터를 화면 오른쪽 위에 2자리 정수로 출력
     vcBuffer[ 0 ] = '0' + iVectorNumber / 10;
     vcBuffer[ 1 ] = '0' + iVectorNumber % 10;
 /*
@@ -74,7 +73,7 @@ void kCommonExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
 }
 
 /**
- *  �������� ����ϴ� ���ͷ�Ʈ �ڵ鷯
+ *  공통으로 사용하는 인터럽트 핸들러
  */
 void kCommonInterruptHandler( int iVectorNumber )
 {
@@ -82,23 +81,22 @@ void kCommonInterruptHandler( int iVectorNumber )
     static int g_iCommonInterruptCount = 0;
 
     //=========================================================================
-    // ���ͷ�Ʈ�� �߻������� �˸����� �޽����� ����ϴ� �κ�
-    // ���ͷ�Ʈ ���͸� ȭ�� ������ ���� 2�ڸ� ������ ���
+    // 인터럽트가 발생했음을 알리려고 메시지를 출력하는 부분
+    // 인터럽트 벡터를 화면 오른쪽 위에 2자리 정수로 출력
     vcBuffer[ 5 ] = '0' + iVectorNumber / 10;
     vcBuffer[ 6 ] = '0' + iVectorNumber % 10;
-    // �߻��� Ƚ�� ���
+    // 발생한 횟수 출력
     vcBuffer[ 8 ] = '0' + g_iCommonInterruptCount;
     g_iCommonInterruptCount = ( g_iCommonInterruptCount + 1 ) % 10;
-    //kPrintString( 70, 0, vcBuffer );
     kPrintStringXY( 70, 0, vcBuffer );
     //=========================================================================
 
-    // EOI ����
+    // EOI 전송
     kSendEOIToPIC( iVectorNumber - PIC_IRQSTARTVECTOR );
 }
 
 /**
- *  Ű���� ���ͷ�Ʈ�� �ڵ鷯
+ *  키보드 인터럽트의 핸들러
  */
 void kKeyboardHandler( int iVectorNumber )
 {
@@ -107,24 +105,24 @@ void kKeyboardHandler( int iVectorNumber )
     BYTE bTemp;
 
     //=========================================================================
-    // ���ͷ�Ʈ�� �߻������� �˸����� �޽����� ����ϴ� �κ�
-    // ���ͷ�Ʈ ���͸� ȭ�� ���� ���� 2�ڸ� ������ ���
+    // 인터럽트가 발생했음을 알리려고 메시지를 출력하는 부분
+    // 인터럽트 벡터를 화면 왼쪽 위에 2자리 정수로 출력
     vcBuffer[ 5 ] = '0' + iVectorNumber / 10;
     vcBuffer[ 6 ] = '0' + iVectorNumber % 10;
-    // �߻��� Ƚ�� ���
+    // 발생한 횟수 출력
     vcBuffer[ 8 ] = '0' + g_iKeyboardInterruptCount;
     g_iKeyboardInterruptCount = ( g_iKeyboardInterruptCount + 1 ) % 10;
-    kPrintString( 0, 0, vcBuffer );
+    kPrintStringXY( 0, 0, vcBuffer );
     //=========================================================================
 
-    // Ű���� ��Ʈ�ѷ����� �����͸� �о ASCII�� ��ȯ�Ͽ� ť�� ����
+    // 키보드 컨트롤러에서 데이터를 읽어서 ASCII로 변환하여 큐에 삽입
     if( kIsOutputBufferFull() == TRUE )
     {
         bTemp = kGetKeyboardScanCode();
         kConvertScanCodeAndPutQueue( bTemp );
     }
 
-    // EOI ����
+    // EOI 전송
     kSendEOIToPIC( iVectorNumber - PIC_IRQSTARTVECTOR );
 }
 
@@ -142,25 +140,26 @@ void kPageFaultExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
     _Bool isProtection = (*ErrorCode) & 0x1;
  
     int position = 0;
+    /*
     while (1)
     {
-        int mod = decimal % 16;    // 16���� �������� �� �������� ����
-        if (mod < 10) // �������� 10���� ������
+        int mod = decimal % 16;    // 16으로 나누었을 때 나머지를 구함
+        if (mod < 10) // 나머지가 10보다 작으면
         {
-            // ���� 0�� ASCII �ڵ� �� 48 + ������
+            // 숫자 0의 ASCII 코드 값 48 + 나머지
             hexadecimal[position] = 48 + mod;
         }
-        else    // �������� 10���� ũ�ų� ������
+        else    // 나머지가 10보다 크거나 같으면
         {
-            // ���������� 10�� �� ���� ���� �빮�� A�� ASCII �ڵ� �� 65�� ����
+            // 나머지에서 10을 뺀 값과 영문 대문자 A의 ASCII 코드 값 65를 더함
             hexadecimal[position] = 97 + (mod - 10);
         }
 
-        decimal = decimal / 16;    // 16���� ���� ���� ����
+        decimal = decimal / 16;    // 16으로 나눈 몫을 저장
 
-        position++;    // �ڸ��� ����
+        position++;    // 자릿수 변경
 
-        if (decimal == 0)    // ���� 0�̵Ǹ� �ݺ��� ����
+        if (decimal == 0)    // 몫이 0이되면 반복을 끝냄
             break;
     }
 
@@ -170,7 +169,7 @@ void kPageFaultExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
         faultAddress[idx++]=hexadecimal[p--];
     }
 
-    // ���ͷ�Ʈ ���͸� ȭ�� ������ ���� 2�ڸ� ������ ���
+    // 인터럽트 벡터를 화면 오른쪽 위에 2자리 정수로 출력
     vcBuffer[ 0 ] = '0' + iVectorNumber / 10;
     vcBuffer[ 1 ] = '0' + iVectorNumber % 10;
 
@@ -188,6 +187,6 @@ void kPageFaultExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
 
 
     kModifyPageTableEntryFlags(decimal);
-    
+    */
     
 }

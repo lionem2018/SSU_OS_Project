@@ -36,6 +36,7 @@
 #define PAGE_TABLESIZE      0x1000
 #define PAGE_MAXENTRYCOUNT  512
 #define PAGE_DEFAULTSIZE    0x200000
+#define PAGE_SMALLSIZE      0x1000
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -47,10 +48,10 @@
 // ������ ��Ʈ���� ���� �ڷᱸ��
 typedef struct kPageTableEntryStruct
 {
-    // PML4T�� PDPTE�� ���
+    // PML4T�� PDPTE�� ���?
     // 1 ��Ʈ P, RW, US, PWT, PCD, A, 3 ��Ʈ Reserved, 3 ��Ʈ Avail, 
     // 20 ��Ʈ Base Address
-    // PDE�� ���
+    // PDE�� ���?
     // 1 ��Ʈ P, RW, US, PWT, PCD, A, D, 1, G, 3 ��Ʈ Avail, 1 ��Ʈ PAT, 8 ��Ʈ Avail, 
     // 11 ��Ʈ Base Address
     DWORD dwAttributeAndLowerBaseAddress;
