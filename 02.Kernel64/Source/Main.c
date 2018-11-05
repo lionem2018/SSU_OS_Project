@@ -18,7 +18,7 @@ void kPrintStringOn0xAB8000( int iX, int iY, const char* pcString );
 void kWriteTestAt0x1FF000();
 
 /**
- *  ï¿½Æ·ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ C ï¿½ï¿½ï¿? Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ï¿½
+ *  ï¿½Æ·ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ C ï¿½ï¿½ï¿?? Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ï¿½
  */
 void Main( void )
 {
@@ -47,7 +47,7 @@ void Main( void )
     kSetCursor( 45, iCursorY++ );
     kPrintf( "Pass\n" );
 
-     kPrintf( "IDT Initialize..............................[    ]" );
+    kPrintf( "IDT Initialize..............................[    ]" );
     kInitializeIDTTables();    
     kLoadIDTR( IDTR_STARTADDRESS );
     kSetCursor( 45, iCursorY++ );
@@ -57,7 +57,7 @@ void Main( void )
     kCheckTotalRAMSize();
     kSetCursor( 45, iCursorY++ );
     kPrintf( "Pass], Size = %d MB\n", kGetTotalRAMSize() );
-    
+
     kPrintf( "Keyboard Activate And Queue Initialize......[    ]" );
 
     // Å°º¸µå¸¦ È°¼ºÈ­
@@ -75,6 +75,7 @@ void Main( void )
     }
 
     kPrintf( "PIC Controller And Interrupt Initialize.....[    ]" );
+
     // PIC ??¨¡¢ç¡¤?¡¤? ??¡¾??¡© ©ö¡¿ ?©£?? ????¡¤?¨¡¢ç ?¡Æ¨«¨¬?¡©
     kInitializePIC();
     kMaskPICInterrupt( 0 );

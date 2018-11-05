@@ -3,57 +3,57 @@
  *  date    2009/01/31
  *  author  kkamagui 
  *          Copyright(c)2008 All rights reserved by kkamagui
- *  brief   콘솔에 관련된 소스 파일
+ *  brief   肄섏넄?뿉 愿??젴?맂 ?냼?뒪 ?뙆?씪
  */
 
 #include <stdarg.h>
 #include "Console.h"
 #include "Keyboard.h"
 
-// 콘솔의 정보를 관리하는 자료구조
+// 肄섏넄?쓽 ?젙蹂대?? 愿?由ы븯?뒗 ?옄猷뚭뎄議?
 CONSOLEMANAGER gs_stConsoleManager = { 0, };
 
 /**
- *  콘솔 초기화
+ *  肄섏넄 珥덇린?솕
  */
 void kInitializeConsole( int iX, int iY )
 {
-    // 자료구조를 모두 0으로 초기화
+    // ?옄猷뚭뎄議곕?? 紐⑤몢 0?쑝濡? 珥덇린?솕
     kMemSet( &gs_stConsoleManager, 0, sizeof( gs_stConsoleManager ) );
     
-    // 커서 위치 설정
+    // 而ㅼ꽌 ?쐞移? ?꽕?젙
     kSetCursor( iX, iY );
 }
 
 /**
- *  커서의 위치를 설정
- *      문자를 출력할 위치도 같이 설정
+ *  而ㅼ꽌?쓽 ?쐞移섎?? ?꽕?젙
+ *      臾몄옄瑜? 異쒕젰?븷 ?쐞移섎룄 媛숈씠 ?꽕?젙
  */
 void kSetCursor( int iX, int iY ) 
 {
     int iLinearValue;
 
-    // 커서의 위치를 계산
+    // 而ㅼ꽌?쓽 ?쐞移섎?? 怨꾩궛
     iLinearValue = iY * CONSOLE_WIDTH + iX;
 
-    // CRTC 컨트롤 어드레스 레지스터(포트 0x3D4)에 0x0E를 전송하여
-    // 상위 커서 위치 레지스터를 선택
+    // CRTC 而⑦듃濡? ?뼱?뱶?젅?뒪 ?젅吏??뒪?꽣(?룷?듃 0x3D4)?뿉 0x0E瑜? ?쟾?넚?븯?뿬
+    // ?긽?쐞 而ㅼ꽌 ?쐞移? ?젅吏??뒪?꽣瑜? ?꽑?깮
     kOutPortByte( VGA_PORT_INDEX, VGA_INDEX_UPPERCURSOR );
-    // CRTC 컨트롤 데이터 레지스터(포트 0x3D5)에 커서의 상위 바이트를 출력
+    // CRTC 而⑦듃濡? ?뜲?씠?꽣 ?젅吏??뒪?꽣(?룷?듃 0x3D5)?뿉 而ㅼ꽌?쓽 ?긽?쐞 諛붿씠?듃瑜? 異쒕젰
     kOutPortByte( VGA_PORT_DATA, iLinearValue >> 8 );
 
-    // CRTC 컨트롤 어드레스 레지스터(포트 0x3D4)에 0x0F를 전송하여
-    // 하위 커서 위치 레지스터를 선택
+    // CRTC 而⑦듃濡? ?뼱?뱶?젅?뒪 ?젅吏??뒪?꽣(?룷?듃 0x3D4)?뿉 0x0F瑜? ?쟾?넚?븯?뿬
+    // ?븯?쐞 而ㅼ꽌 ?쐞移? ?젅吏??뒪?꽣瑜? ?꽑?깮
     kOutPortByte( VGA_PORT_INDEX, VGA_INDEX_LOWERCURSOR );
-    // CRTC 컨트롤 데이터 레지스터(포트 0x3D5)에 커서의 하위 바이트를 출력
+    // CRTC 而⑦듃濡? ?뜲?씠?꽣 ?젅吏??뒪?꽣(?룷?듃 0x3D5)?뿉 而ㅼ꽌?쓽 ?븯?쐞 諛붿씠?듃瑜? 異쒕젰
     kOutPortByte( VGA_PORT_DATA, iLinearValue & 0xFF );
 
-    // 문자를 출력할 위치 업데이트
+    // 臾몄옄瑜? 異쒕젰?븷 ?쐞移? ?뾽?뜲?씠?듃
     gs_stConsoleManager.iCurrentPrintOffset = iLinearValue;
 }
 
 /**
- *  현재 커서의 위치를 반환
+ *  ?쁽?옱 而ㅼ꽌?쓽 ?쐞移섎?? 諛섑솚
  */
 void kGetCursor( int *piX, int *piY )
 {
@@ -62,7 +62,7 @@ void kGetCursor( int *piX, int *piY )
 }
 
 /**
- *  printf 함수의 내부 구현
+ *  printf ?븿?닔?쓽 ?궡遺? 援ы쁽
  */
 void kPrintf( const char* pcFormatString, ... )
 {
@@ -70,21 +70,21 @@ void kPrintf( const char* pcFormatString, ... )
     char vcBuffer[ 1024 ];
     int iNextPrintOffset;
 
-    // 가변 인자 리스트를 사용해서 vsprintf()로 처리
+    // 媛?蹂? ?씤?옄 由ъ뒪?듃瑜? ?궗?슜?빐?꽌 vsprintf()濡? 泥섎━
     va_start( ap, pcFormatString );
     kVSPrintf( vcBuffer, pcFormatString, ap );
     va_end( ap );
     
-    // 포맷 문자열을 화면에 출력
+    // ?룷留? 臾몄옄?뿴?쓣 ?솕硫댁뿉 異쒕젰
     iNextPrintOffset = kConsolePrintString( vcBuffer );
     
-    // 커서의 위치를 업데이트
+    // 而ㅼ꽌?쓽 ?쐞移섎?? ?뾽?뜲?씠?듃
     kSetCursor( iNextPrintOffset % CONSOLE_WIDTH, iNextPrintOffset / CONSOLE_WIDTH );
 }
 
 /**
- *  \n, \t와 같은 문자가 포함된 문자열을 출력한 후, 화면상의 다음 출력할 위치를 
- *  반환
+ *  \n, \t??? 媛숈?? 臾몄옄媛? ?룷?븿?맂 臾몄옄?뿴?쓣 異쒕젰?븳 ?썑, ?솕硫댁긽?쓽 ?떎?쓬 異쒕젰?븷 ?쐞移섎?? 
+ *  諛섑솚
  */
 int kConsolePrintString( const char* pcBuffer )
 {
@@ -93,54 +93,54 @@ int kConsolePrintString( const char* pcBuffer )
     int iLength;
     int iPrintOffset;
     
-    // 문자열을 출력할 위치를 저장
+    // 臾몄옄?뿴?쓣 異쒕젰?븷 ?쐞移섎?? ????옣
     iPrintOffset = gs_stConsoleManager.iCurrentPrintOffset;
 
-    // 문자열의 길이만큼 화면에 출력
+    // 臾몄옄?뿴?쓽 湲몄씠留뚰겮 ?솕硫댁뿉 異쒕젰
     iLength = kStrLen( pcBuffer );    
     for( i = 0 ; i < iLength ; i++ )
     {
-        // 개행 처리
+        // 媛쒗뻾 泥섎━
         if( pcBuffer[ i ] == '\n' )
         {
-            // 출력할 위치를 80의 배수 컬럼으로 옮김
-            // 현재 라인의 남은 문자열의 수만큼 더해서 다음 라인으로 위치시킴
+            // 異쒕젰?븷 ?쐞移섎?? 80?쓽 諛곗닔 而щ읆?쑝濡? ?삷源?
+            // ?쁽?옱 ?씪?씤?쓽 ?궓??? 臾몄옄?뿴?쓽 ?닔留뚰겮 ?뜑?빐?꽌 ?떎?쓬 ?씪?씤?쑝濡? ?쐞移섏떆?궡
             iPrintOffset += ( CONSOLE_WIDTH - ( iPrintOffset % CONSOLE_WIDTH ) );
         }
-        // 탭 처리
+        // ?꺆 泥섎━
         else if( pcBuffer[ i ] == '\t' )
         {
-            // 출력할 위치를 8의 배수 컬럼으로 옮김
+            // 異쒕젰?븷 ?쐞移섎?? 8?쓽 諛곗닔 而щ읆?쑝濡? ?삷源?
             iPrintOffset += ( 8 - ( iPrintOffset % 8 ) );
         }
-        // 일반 문자열 출력
+        // ?씪諛? 臾몄옄?뿴 異쒕젰
         else
         {
-            // 비디오 메모리에 문자와 속성을 설정하여 문자를 출력하고
-            // 출력할 위치를 다음으로 이동
+            // 鍮꾨뵒?삤 硫붾え由ъ뿉 臾몄옄??? ?냽?꽦?쓣 ?꽕?젙?븯?뿬 臾몄옄瑜? 異쒕젰?븯怨?
+            // 異쒕젰?븷 ?쐞移섎?? ?떎?쓬?쑝濡? ?씠?룞
             pstScreen[ iPrintOffset ].bCharactor = pcBuffer[ i ];
             pstScreen[ iPrintOffset ].bAttribute = CONSOLE_DEFAULTTEXTCOLOR;
             iPrintOffset++;
         }
         
-        // 출력할 위치가 화면의 최댓값(80 * 25)을 벗어났으면 스크롤 처리
+        // 異쒕젰?븷 ?쐞移섍?? ?솕硫댁쓽 理쒕뙎媛?(80 * 25)?쓣 踰쀬뼱?궗?쑝硫? ?뒪?겕濡? 泥섎━
         if( iPrintOffset >= ( CONSOLE_HEIGHT * CONSOLE_WIDTH ) )
         {
-            // 가장 윗줄을 제외한 나머지를 한줄 위로 복사
+            // 媛??옣 ?쐵以꾩쓣 ?젣?쇅?븳 ?굹癒몄??瑜? ?븳以? ?쐞濡? 蹂듭궗
             kMemCpy( CONSOLE_VIDEOMEMORYADDRESS, 
                      CONSOLE_VIDEOMEMORYADDRESS + CONSOLE_WIDTH * sizeof( CHARACTER ),
                      ( CONSOLE_HEIGHT - 1 ) * CONSOLE_WIDTH * sizeof( CHARACTER ) );
 
-            // 가장 마지막 라인은 공백으로 채움
+            // 媛??옣 留덉??留? ?씪?씤??? 怨듬갚?쑝濡? 梨꾩??
             for( j = ( CONSOLE_HEIGHT - 1 ) * ( CONSOLE_WIDTH ) ; 
                  j < ( CONSOLE_HEIGHT * CONSOLE_WIDTH ) ; j++ )
             {
-                // 공백 출력
+                // 怨듬갚 異쒕젰
                 pstScreen[ j ].bCharactor = ' ';
                 pstScreen[ j ].bAttribute = CONSOLE_DEFAULTTEXTCOLOR;
             }
             
-            // 출력할 위치를 가장 아래쪽 라인의 처음으로 설정
+            // 異쒕젰?븷 ?쐞移섎?? 媛??옣 ?븘?옒履? ?씪?씤?쓽 泥섏쓬?쑝濡? ?꽕?젙
             iPrintOffset = ( CONSOLE_HEIGHT - 1 ) * CONSOLE_WIDTH;
         }
     }
@@ -148,41 +148,41 @@ int kConsolePrintString( const char* pcBuffer )
 }
 
 /**
- *  전체 화면을 삭제
+ *  ?쟾泥? ?솕硫댁쓣 ?궘?젣
  */
 void kClearScreen( void )
 {
     CHARACTER* pstScreen = ( CHARACTER* ) CONSOLE_VIDEOMEMORYADDRESS;
     int i;
     
-    // 화면 전체를 공백으로 채우고, 커서의 위치를 0, 0으로 옮김
+    // ?솕硫? ?쟾泥대?? 怨듬갚?쑝濡? 梨꾩슦怨?, 而ㅼ꽌?쓽 ?쐞移섎?? 0, 0?쑝濡? ?삷源?
     for( i = 0 ; i < CONSOLE_WIDTH * CONSOLE_HEIGHT ; i++ )
     {
         pstScreen[ i ].bCharactor = ' ';
         pstScreen[ i ].bAttribute = CONSOLE_DEFAULTTEXTCOLOR;
     }
     
-    // 커서를 화면 상단으로 이동
+    // 而ㅼ꽌瑜? ?솕硫? ?긽?떒?쑝濡? ?씠?룞
     kSetCursor( 0, 0 );
 }
 
 /**
- *  getch() 함수의 구현
+ *  getch() ?븿?닔?쓽 援ы쁽
  */
 BYTE kGetCh( void )
 {
     KEYDATA stData;
     
-    // 키가 눌러질때까지 대기함
+    // ?궎媛? ?닃?윭吏덈븣源뚯?? ???湲고븿
     while( 1 )
     {
-        // 키 큐에 데이터가 수신될 때까지 대기
+        // ?궎 ?걧?뿉 ?뜲?씠?꽣媛? ?닔?떊?맆 ?븣源뚯?? ???湲?
         while( kGetKeyFromKeyQueue( &stData ) == FALSE )
         {
             ;
         }
         
-        // 키가 눌렸다는 데이터가 수신되면 ASCII 코드를 반환
+        // ?궎媛? ?닃?졇?떎?뒗 ?뜲?씠?꽣媛? ?닔?떊?릺硫? ASCII 肄붾뱶瑜? 諛섑솚
         if( stData.bFlags & KEY_FLAGS_DOWN )
         {
             return stData.bASCIICode;
@@ -191,20 +191,19 @@ BYTE kGetCh( void )
 }
 
 /**
- *  문자열을 X, Y 위치에 출력
+ *  臾몄옄?뿴?쓣 X, Y ?쐞移섏뿉 異쒕젰
  */
 void kPrintStringXY( int iX, int iY, const char* pcString )
 {
     CHARACTER* pstScreen = ( CHARACTER* ) CONSOLE_VIDEOMEMORYADDRESS;
     int i;
     
-    // 비디오 메모리 어드레스에서 현재 출력할 위치를 계산
+    // 鍮꾨뵒?삤 硫붾え由? ?뼱?뱶?젅?뒪?뿉?꽌 ?쁽?옱 異쒕젰?븷 ?쐞移섎?? 怨꾩궛
     pstScreen += ( iY * CONSOLE_WIDTH ) + iX;
-    // 문자열의 길이만큼 루프를 돌면서 문자와 속성을 저장
+    // 臾몄옄?뿴?쓽 湲몄씠留뚰겮 猷⑦봽瑜? ?룎硫댁꽌 臾몄옄??? ?냽?꽦?쓣 ????옣
     for( i = 0 ; pcString[ i ] != 0 ; i++ )
     {
         pstScreen[ i ].bCharactor = pcString[ i ];
         pstScreen[ i ].bAttribute = CONSOLE_DEFAULTTEXTCOLOR;
     }
 }
-

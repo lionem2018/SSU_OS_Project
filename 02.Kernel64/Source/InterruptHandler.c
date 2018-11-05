@@ -135,6 +135,7 @@ void kPageFaultExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
     _Bool isProtection = (*ErrorCode) & 0x1;
  
     int position = 0;
+
     while (1)
     {
         int mod = decimal % 16;    // 16으로 나누었을 때 나머지를 구함
@@ -181,6 +182,5 @@ void kPageFaultExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
 
 
     kModifyPageTableEntryFlags(decimal);
-    
     
 }

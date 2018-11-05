@@ -48,7 +48,7 @@
 
 // 콘솔의 너비(Width)와 높이(Height),그리고 비디오 메모리의 시작 어드레스 설정
 #define CONSOLE_WIDTH               80
-#define CONSOLE_HEIGHT              25
+#define CONSOLE_HEIGHT              23
 #define CONSOLE_VIDEOMEMORYADDRESS  0xB8000
 
 // 비디오 컨트롤러의 I/O 포트 어드레스와 레지스터

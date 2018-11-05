@@ -1,22 +1,22 @@
+
 /**
  *  file    Utility.h
  *  date    2009/01/17
  *  author  kkamagui 
  *          Copyright(c)2008 All rights reserved by kkamagui
- *  brief   OS에서 사용할 유틸리티 함수에 관련된 파일
+ *  brief   OS?뿉?꽌 ?궗?슜?븷 ?쑀?떥由ы떚 ?븿?닔?뿉 愿??젴?맂 ?뙆?씪
  */
 
 #include "Utility.h"
 #include "AssemblyUtility.h"
 #include <stdarg.h>
-
 /**
- *  메모리를 특정 값으로 채움
+ *  硫붾え由щ?? ?듅?젙 媛믪쑝濡? 梨꾩??
  */
 void kMemSet( void* pvDestination, BYTE bData, int iSize )
 {
     int i;
-    
+
     for( i = 0 ; i < iSize ; i++ )
     {
         ( ( char* ) pvDestination )[ i ] = bData;
@@ -24,28 +24,28 @@ void kMemSet( void* pvDestination, BYTE bData, int iSize )
 }
 
 /**
- *  메모리 복사
+ *  硫붾え由? 蹂듭궗
  */
 int kMemCpy( void* pvDestination, const void* pvSource, int iSize )
 {
     int i;
-    
+
     for( i = 0 ; i < iSize ; i++ )
     {
         ( ( char* ) pvDestination )[ i ] = ( ( char* ) pvSource )[ i ];
     }
-    
+
     return iSize;
 }
 
 /**
- *  메모리 비교
+ *  硫붾え由? 鍮꾧탳
  */
 int kMemCmp( const void* pvDestination, const void* pvSource, int iSize )
 {
     int i;
     char cTemp;
-    
+
     for( i = 0 ; i < iSize ; i++ )
     {
         cTemp = ( ( char* ) pvDestination )[ i ] - ( ( char* ) pvSource )[ i ];
@@ -58,13 +58,13 @@ int kMemCmp( const void* pvDestination, const void* pvSource, int iSize )
 }
 
 /**
- *  RFLAGS 레지스터의 인터럽트 플래그를 변경하고 이전 인터럽트 플래그의 상태를 반환
+ *  RFLAGS ?젅吏??뒪?꽣?쓽 ?씤?꽣?읇?듃 ?뵆?옒洹몃?? 蹂?寃쏀븯怨? ?씠?쟾 ?씤?꽣?읇?듃 ?뵆?옒洹몄쓽 ?긽?깭瑜? 諛섑솚
  */
 BOOL kSetInterruptFlag( BOOL bEnableInterrupt )
 {
     QWORD qwRFLAGS;
 
-    // 이전의 RFLAGS 레지스터 값을 읽은 뒤에 인터럽트 가능/불가 처리
+    // ?씠?쟾?쓽 RFLAGS ?젅吏??뒪?꽣 媛믪쓣 ?씫??? ?뮘?뿉 ?씤?꽣?읇?듃 媛??뒫/遺덇?? 泥섎━
     qwRFLAGS = kReadRFLAGS();
     if( bEnableInterrupt == TRUE )
     {
@@ -75,7 +75,7 @@ BOOL kSetInterruptFlag( BOOL bEnableInterrupt )
         kDisableInterrupt();
     }
 
-    // 이전 RFLAGS 레지스터의 IF 비트(비트 9)를 확인하여 이전의 인터럽트 상태를 반환
+    // ?씠?쟾 RFLAGS ?젅吏??뒪?꽣?쓽 IF 鍮꾪듃(鍮꾪듃 9)瑜? ?솗?씤?븯?뿬 ?씠?쟾?쓽 ?씤?꽣?읇?듃 ?긽?깭瑜? 諛섑솚
     if( qwRFLAGS & 0x0200 )
     {
         return TRUE;
@@ -83,9 +83,6 @@ BOOL kSetInterruptFlag( BOOL bEnableInterrupt )
     return FALSE;
 }
 
-/**
- *  문자열의 길이를 반환
- */
 int kStrLen( const char* pcBuffer )
 {
     int i;
@@ -100,42 +97,42 @@ int kStrLen( const char* pcBuffer )
     return i;
 }
 
-// 램의 총 크기(Mbyte 단위)
+// ?옩?쓽 珥? ?겕湲?(Mbyte ?떒?쐞)
 static gs_qwTotalRAMMBSize = 0;
 
 /**
- *  64Mbyte 이상의 위치부터 램 크기를 체크
- *      최초 부팅 과정에서 한번만 호출해야 함
+ *  64Mbyte ?씠?긽?쓽 ?쐞移섎???꽣 ?옩 ?겕湲곕?? 泥댄겕
+ *      理쒖큹 遺??똿 怨쇱젙?뿉?꽌 ?븳踰덈쭔 ?샇異쒗빐?빞 ?븿
  */
 void kCheckTotalRAMSize( void )
 {
     DWORD* pdwCurrentAddress;
     DWORD dwPreviousValue;
     
-    // 64Mbyte(0x4000000)부터 4Mbyte단위로 검사 시작
+    // 64Mbyte(0x4000000)遺??꽣 4Mbyte?떒?쐞濡? 寃??궗 ?떆?옉
     pdwCurrentAddress = ( DWORD* ) 0x4000000;
     while( 1 )
     {
-        // 이전에 메모리에 있던 값을 저장
+        // ?씠?쟾?뿉 硫붾え由ъ뿉 ?엳?뜕 媛믪쓣 ????옣
         dwPreviousValue = *pdwCurrentAddress;
-        // 0x12345678을 써서 읽었을 때 문제가 없는 곳까지를 유효한 메모리 
-        // 영역으로 인정
+        // 0x12345678?쓣 ?뜥?꽌 ?씫?뿀?쓣 ?븣 臾몄젣媛? ?뾾?뒗 怨녠퉴吏?瑜? ?쑀?슚?븳 硫붾え由? 
+        // ?쁺?뿭?쑝濡? ?씤?젙
         *pdwCurrentAddress = 0x12345678;
         if( *pdwCurrentAddress != 0x12345678 )
         {
             break;
         }
-        // 이전 메모리 값으로 복원
+        // ?씠?쟾 硫붾え由? 媛믪쑝濡? 蹂듭썝
         *pdwCurrentAddress = dwPreviousValue;
-        // 다음 4Mbyte 위치로 이동
+        // ?떎?쓬 4Mbyte ?쐞移섎줈 ?씠?룞
         pdwCurrentAddress += ( 0x400000 / 4 );
     }
-    // 체크가 성공한 어드레스를 1Mbyte로 나누어 Mbyte 단위로 계산
+    // 泥댄겕媛? ?꽦怨듯븳 ?뼱?뱶?젅?뒪瑜? 1Mbyte濡? ?굹?늻?뼱 Mbyte ?떒?쐞濡? 怨꾩궛
     gs_qwTotalRAMMBSize = ( QWORD ) pdwCurrentAddress / 0x100000;
 }
 
 /**
- *  RAM 크기를 반환
+ *  RAM ?겕湲곕?? 諛섑솚
  */
 QWORD kGetTotalRAMSize( void )
 {
@@ -143,7 +140,7 @@ QWORD kGetTotalRAMSize( void )
 }
 
 /**
- *  atoi() 함수의 내부 구현
+ *  atoi() ?븿?닔?쓽 ?궡遺? 援ы쁽
  */
 long kAToI( const char* pcBuffer, int iRadix )
 {
@@ -151,12 +148,12 @@ long kAToI( const char* pcBuffer, int iRadix )
     
     switch( iRadix )
     {
-        // 16진수
+        // 16吏꾩닔
     case 16:
         lReturn = kHexStringToQword( pcBuffer );
         break;
         
-        // 10진수 또는 기타
+        // 10吏꾩닔 ?삉?뒗 湲고??
     case 10:
     default:
         lReturn = kDecimalStringToLong( pcBuffer );
@@ -166,14 +163,14 @@ long kAToI( const char* pcBuffer, int iRadix )
 }
 
 /**
- *  16진수 문자열을 QWORD로 변환 
+ *  16吏꾩닔 臾몄옄?뿴?쓣 QWORD濡? 蹂??솚 
  */
 QWORD kHexStringToQword( const char* pcBuffer )
 {
     QWORD qwValue = 0;
     int i;
     
-    // 문자열을 돌면서 차례로 변환
+    // 臾몄옄?뿴?쓣 ?룎硫댁꽌 李⑤??濡? 蹂??솚
     for( i = 0 ; pcBuffer[ i ] != '\0' ; i++ )
     {
         qwValue *= 16;
@@ -194,14 +191,14 @@ QWORD kHexStringToQword( const char* pcBuffer )
 }
 
 /**
- *  10진수 문자열을 long으로 변환
+ *  10吏꾩닔 臾몄옄?뿴?쓣 long?쑝濡? 蹂??솚
  */
 long kDecimalStringToLong( const char* pcBuffer )
 {
     long lValue = 0;
     int i;
     
-    // 음수이면 -를 제외하고 나머지를 먼저 long으로 변환
+    // ?쓬?닔?씠硫? -瑜? ?젣?쇅?븯怨? ?굹癒몄??瑜? 癒쇱?? long?쑝濡? 蹂??솚
     if( pcBuffer[ 0 ] == '-' )
     {
         i = 1;
@@ -211,14 +208,14 @@ long kDecimalStringToLong( const char* pcBuffer )
         i = 0;
     }
     
-    // 문자열을 돌면서 차례로 변환
+    // 臾몄옄?뿴?쓣 ?룎硫댁꽌 李⑤??濡? 蹂??솚
     for( ; pcBuffer[ i ] != '\0' ; i++ )
     {
         lValue *= 10;
         lValue += pcBuffer[ i ] - '0';
     }
     
-    // 음수이면 - 추가
+    // ?쓬?닔?씠硫? - 異붽??
     if( pcBuffer[ 0 ] == '-' )
     {
         lValue = -lValue;
@@ -227,7 +224,7 @@ long kDecimalStringToLong( const char* pcBuffer )
 }
 
 /**
- *  itoa() 함수의 내부 구현
+ *  itoa() ?븿?닔?쓽 ?궡遺? 援ы쁽
  */
 int kIToA( long lValue, char* pcBuffer, int iRadix )
 {
@@ -235,12 +232,12 @@ int kIToA( long lValue, char* pcBuffer, int iRadix )
     
     switch( iRadix )
     {
-        // 16진수
+        // 16吏꾩닔
     case 16:
         iReturn = kHexToString( lValue, pcBuffer );
         break;
         
-        // 10진수 또는 기타
+        // 10吏꾩닔 ?삉?뒗 湲고??
     case 10:
     default:
         iReturn = kDecimalToString( lValue, pcBuffer );
@@ -251,14 +248,14 @@ int kIToA( long lValue, char* pcBuffer, int iRadix )
 }
 
 /**
- *  16진수 값을 문자열로 변환
+ *  16吏꾩닔 媛믪쓣 臾몄옄?뿴濡? 蹂??솚
  */
 int kHexToString( QWORD qwValue, char* pcBuffer )
 {
     QWORD i;
     QWORD qwCurrentValue;
 
-    // 0이 들어오면 바로 처리
+    // 0?씠 ?뱾?뼱?삤硫? 諛붾줈 泥섎━
     if( qwValue == 0 )
     {
         pcBuffer[ 0 ] = '0';
@@ -266,7 +263,7 @@ int kHexToString( QWORD qwValue, char* pcBuffer )
         return 1;
     }
     
-    // 버퍼에 1의 자리부터 16, 256, ...의 자리 순서로 숫자 삽입
+    // 踰꾪띁?뿉 1?쓽 ?옄由щ???꽣 16, 256, ...?쓽 ?옄由? ?닚?꽌濡? ?닽?옄 ?궫?엯
     for( i = 0 ; qwValue > 0 ; i++ )
     {
         qwCurrentValue = qwValue % 16;
@@ -283,19 +280,19 @@ int kHexToString( QWORD qwValue, char* pcBuffer )
     }
     pcBuffer[ i ] = '\0';
     
-    // 버퍼에 들어있는 문자열을 뒤집어서 ... 256, 16, 1의 자리 순서로 변경
+    // 踰꾪띁?뿉 ?뱾?뼱?엳?뒗 臾몄옄?뿴?쓣 ?뮘吏묒뼱?꽌 ... 256, 16, 1?쓽 ?옄由? ?닚?꽌濡? 蹂?寃?
     kReverseString( pcBuffer );
     return i;
 }
 
 /**
- *  10진수 값을 문자열로 변환
+ *  10吏꾩닔 媛믪쓣 臾몄옄?뿴濡? 蹂??솚
  */
 int kDecimalToString( long lValue, char* pcBuffer )
 {
     long i;
 
-    // 0이 들어오면 바로 처리
+    // 0?씠 ?뱾?뼱?삤硫? 諛붾줈 泥섎━
     if( lValue == 0 )
     {
         pcBuffer[ 0 ] = '0';
@@ -303,7 +300,7 @@ int kDecimalToString( long lValue, char* pcBuffer )
         return 1;
     }
     
-    // 만약 음수이면 출력 버퍼에 '-'를 추가하고 양수로 변환
+    // 留뚯빟 ?쓬?닔?씠硫? 異쒕젰 踰꾪띁?뿉 '-'瑜? 異붽???븯怨? ?뼇?닔濡? 蹂??솚
     if( lValue < 0 )
     {
         i = 1;
@@ -315,7 +312,7 @@ int kDecimalToString( long lValue, char* pcBuffer )
         i = 0;
     }
 
-    // 버퍼에 1의 자리부터 10, 100, 1000 ...의 자리 순서로 숫자 삽입
+    // 踰꾪띁?뿉 1?쓽 ?옄由щ???꽣 10, 100, 1000 ...?쓽 ?옄由? ?닚?꽌濡? ?닽?옄 ?궫?엯
     for( ; lValue > 0 ; i++ )
     {
         pcBuffer[ i ] = '0' + lValue % 10;        
@@ -323,10 +320,10 @@ int kDecimalToString( long lValue, char* pcBuffer )
     }
     pcBuffer[ i ] = '\0';
     
-    // 버퍼에 들어있는 문자열을 뒤집어서 ... 1000, 100, 10, 1의 자리 순서로 변경
+    // 踰꾪띁?뿉 ?뱾?뼱?엳?뒗 臾몄옄?뿴?쓣 ?뮘吏묒뼱?꽌 ... 1000, 100, 10, 1?쓽 ?옄由? ?닚?꽌濡? 蹂?寃?
     if( pcBuffer[ 0 ] == '-' )
     {
-        // 음수인 경우는 부호를 제외하고 문자열을 뒤집음
+        // ?쓬?닔?씤 寃쎌슦?뒗 遺??샇瑜? ?젣?쇅?븯怨? 臾몄옄?뿴?쓣 ?뮘吏묒쓬
         kReverseString( &( pcBuffer[ 1 ] ) );
     }
     else
@@ -338,7 +335,7 @@ int kDecimalToString( long lValue, char* pcBuffer )
 }
 
 /**
- *  문자열의 순서를 뒤집음
+ *  臾몄옄?뿴?쓽 ?닚?꽌瑜? ?뮘吏묒쓬
  */
 void kReverseString( char* pcBuffer )
 {
@@ -347,7 +344,7 @@ void kReverseString( char* pcBuffer )
    char cTemp;
    
    
-   // 문자열의 가운데를 중심으로 좌/우를 바꿔서 순서를 뒤집음
+   // 臾몄옄?뿴?쓽 媛??슫?뜲瑜? 以묒떖?쑝濡? 醫?/?슦瑜? 諛붽퓭?꽌 ?닚?꽌瑜? ?뮘吏묒쓬
    iLength = kStrLen( pcBuffer );
    for( i = 0 ; i < iLength / 2 ; i++ )
    {
@@ -358,14 +355,14 @@ void kReverseString( char* pcBuffer )
 }
 
 /**
- *  sprintf() 함수의 내부 구현
+ *  sprintf() ?븿?닔?쓽 ?궡遺? 援ы쁽
  */
 int kSPrintf( char* pcBuffer, const char* pcFormatString, ... )
 {
     va_list ap;
     int iReturn;
     
-    // 가변 인자를 꺼내서 vsprintf() 함수에 넘겨줌
+    // 媛?蹂? ?씤?옄瑜? 爰쇰궡?꽌 vsprintf() ?븿?닔?뿉 ?꽆寃⑥쨲
     va_start( ap, pcFormatString );
     iReturn = kVSPrintf( pcBuffer, pcFormatString, ap );
     va_end( ap );
@@ -374,8 +371,8 @@ int kSPrintf( char* pcBuffer, const char* pcFormatString, ... )
 }
 
 /**
- *  vsprintf() 함수의 내부 구현
- *      버퍼에 포맷 문자열에 따라 데이터를 복사
+ *  vsprintf() ?븿?닔?쓽 ?궡遺? 援ы쁽
+ *      踰꾪띁?뿉 ?룷留? 臾몄옄?뿴?뿉 ?뵲?씪 ?뜲?씠?꽣瑜? 蹂듭궗
  */
 int kVSPrintf( char* pcBuffer, const char* pcFormatString, va_list ap )
 {
@@ -386,82 +383,82 @@ int kVSPrintf( char* pcBuffer, const char* pcFormatString, va_list ap )
     QWORD qwValue;
     int iValue;
     
-    // 포맷 문자열의 길이를 읽어서 문자열의 길이만큼 데이터를 출력 버퍼에 출력
+    // ?룷留? 臾몄옄?뿴?쓽 湲몄씠瑜? ?씫?뼱?꽌 臾몄옄?뿴?쓽 湲몄씠留뚰겮 ?뜲?씠?꽣瑜? 異쒕젰 踰꾪띁?뿉 異쒕젰
     iFormatLength = kStrLen( pcFormatString );
     for( i = 0 ; i < iFormatLength ; i++ ) 
     {
-        // %로 시작하면 데이터 타입 문자로 처리
+        // %濡? ?떆?옉?븯硫? ?뜲?씠?꽣 ????엯 臾몄옄濡? 泥섎━
         if( pcFormatString[ i ] == '%' ) 
         {
-            // % 다음의 문자로 이동
+            // % ?떎?쓬?쓽 臾몄옄濡? ?씠?룞
             i++;
             switch( pcFormatString[ i ] ) 
             {
-                // 문자열 출력  
+                // 臾몄옄?뿴 異쒕젰  
             case 's':
-                // 가변 인자에 들어있는 파라미터를 문자열 타입으로 변환
+                // 媛?蹂? ?씤?옄?뿉 ?뱾?뼱?엳?뒗 ?뙆?씪誘명꽣瑜? 臾몄옄?뿴 ????엯?쑝濡? 蹂??솚
                 pcCopyString = ( char* ) ( va_arg(ap, char* ));
                 iCopyLength = kStrLen( pcCopyString );
-                // 문자열의 길이만큼을 출력 버퍼로 복사하고 출력한 길이만큼 
-                // 버퍼의 인덱스를 이동
+                // 臾몄옄?뿴?쓽 湲몄씠留뚰겮?쓣 異쒕젰 踰꾪띁濡? 蹂듭궗?븯怨? 異쒕젰?븳 湲몄씠留뚰겮 
+                // 踰꾪띁?쓽 ?씤?뜳?뒪瑜? ?씠?룞
                 kMemCpy( pcBuffer + iBufferIndex, pcCopyString, iCopyLength );
                 iBufferIndex += iCopyLength;
                 break;
                 
-                // 문자 출력
+                // 臾몄옄 異쒕젰
             case 'c':
-                // 가변 인자에 들어있는 파라미터를 문자 타입으로 변환하여 
-                // 출력 버퍼에 복사하고 버퍼의 인덱스를 1만큼 이동
+                // 媛?蹂? ?씤?옄?뿉 ?뱾?뼱?엳?뒗 ?뙆?씪誘명꽣瑜? 臾몄옄 ????엯?쑝濡? 蹂??솚?븯?뿬 
+                // 異쒕젰 踰꾪띁?뿉 蹂듭궗?븯怨? 踰꾪띁?쓽 ?씤?뜳?뒪瑜? 1留뚰겮 ?씠?룞
                 pcBuffer[ iBufferIndex ] = ( char ) ( va_arg( ap, int ) );
                 iBufferIndex++;
                 break;
 
-                // 정수 출력
+                // ?젙?닔 異쒕젰
             case 'd':
             case 'i':
-                // 가변 인자에 들어있는 파라미터를 정수 타입으로 변환하여
-                // 출력 버퍼에 복사하고 출력한 길이만큼 버퍼의 인덱스를 이동
+                // 媛?蹂? ?씤?옄?뿉 ?뱾?뼱?엳?뒗 ?뙆?씪誘명꽣瑜? ?젙?닔 ????엯?쑝濡? 蹂??솚?븯?뿬
+                // 異쒕젰 踰꾪띁?뿉 蹂듭궗?븯怨? 異쒕젰?븳 湲몄씠留뚰겮 踰꾪띁?쓽 ?씤?뜳?뒪瑜? ?씠?룞
                 iValue = ( int ) ( va_arg( ap, int ) );
                 iBufferIndex += kIToA( iValue, pcBuffer + iBufferIndex, 10 );
                 break;
                 
-                // 4바이트 Hex 출력
+                // 4諛붿씠?듃 Hex 異쒕젰
             case 'x':
             case 'X':
-                // 가변 인자에 들어있는 파라미터를 DWORD 타입으로 변환하여
-                // 출력 버퍼에 복사하고 출력한 길이만큼 버퍼의 인덱스를 이동
+                // 媛?蹂? ?씤?옄?뿉 ?뱾?뼱?엳?뒗 ?뙆?씪誘명꽣瑜? DWORD ????엯?쑝濡? 蹂??솚?븯?뿬
+                // 異쒕젰 踰꾪띁?뿉 蹂듭궗?븯怨? 異쒕젰?븳 湲몄씠留뚰겮 踰꾪띁?쓽 ?씤?뜳?뒪瑜? ?씠?룞
                 qwValue = ( DWORD ) ( va_arg( ap, DWORD ) ) & 0xFFFFFFFF;
                 iBufferIndex += kIToA( qwValue, pcBuffer + iBufferIndex, 16 );
                 break;
 
-                // 8바이트 Hex 출력
+                // 8諛붿씠?듃 Hex 異쒕젰
             case 'q':
             case 'Q':
             case 'p':
-                // 가변 인자에 들어있는 파라미터를 QWORD 타입으로 변환하여
-                // 출력 버퍼에 복사하고 출력한 길이만큼 버퍼의 인덱스를 이동
+                // 媛?蹂? ?씤?옄?뿉 ?뱾?뼱?엳?뒗 ?뙆?씪誘명꽣瑜? QWORD ????엯?쑝濡? 蹂??솚?븯?뿬
+                // 異쒕젰 踰꾪띁?뿉 蹂듭궗?븯怨? 異쒕젰?븳 湲몄씠留뚰겮 踰꾪띁?쓽 ?씤?뜳?뒪瑜? ?씠?룞
                 qwValue = ( QWORD ) ( va_arg( ap, QWORD ) );
                 iBufferIndex += kIToA( qwValue, pcBuffer + iBufferIndex, 16 );
                 break;
             
-                // 위에 해당하지 않으면 문자를 그대로 출력하고 버퍼의 인덱스를
-                // 1만큼 이동
+                // ?쐞?뿉 ?빐?떦?븯吏? ?븡?쑝硫? 臾몄옄瑜? 洹몃??濡? 異쒕젰?븯怨? 踰꾪띁?쓽 ?씤?뜳?뒪瑜?
+                // 1留뚰겮 ?씠?룞
             default:
                 pcBuffer[ iBufferIndex ] = pcFormatString[ i ];
                 iBufferIndex++;
                 break;
             }
         } 
-        // 일반 문자열 처리
+        // ?씪諛? 臾몄옄?뿴 泥섎━
         else
         {
-            // 문자를 그대로 출력하고 버퍼의 인덱스를 1만큼 이동
+            // 臾몄옄瑜? 洹몃??濡? 異쒕젰?븯怨? 踰꾪띁?쓽 ?씤?뜳?뒪瑜? 1留뚰겮 ?씠?룞
             pcBuffer[ iBufferIndex ] = pcFormatString[ i ];
             iBufferIndex++;
         }
     }
     
-    // NULL을 추가하여 완전한 문자열로 만들고 출력한 문자의 길이를 반환
+    // NULL?쓣 異붽???븯?뿬 ?셿?쟾?븳 臾몄옄?뿴濡? 留뚮뱾怨? 異쒕젰?븳 臾몄옄?쓽 湲몄씠瑜? 諛섑솚
     pcBuffer[ iBufferIndex ] = '\0';
     return iBufferIndex;
 }

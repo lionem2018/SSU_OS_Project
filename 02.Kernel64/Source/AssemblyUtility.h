@@ -10,12 +10,14 @@
 #define __ASSEMBLYUTILITY_H__
 
 #include "Types.h"
+#include "Task.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 //  ÇÔ¼ö
 //
 ////////////////////////////////////////////////////////////////////////////////
+
 BYTE kInPortByte( WORD wPort );
 void kOutPortByte( WORD wPort, BYTE bData );
 
@@ -26,5 +28,6 @@ void kEnableInterrupt( void );
 void kDisableInterrupt( void );
 QWORD kReadRFLAGS( void );  
 QWORD getFaultAddress(void);
-
+QWORD kReadTSC( void );
+void kSwitchContext( CONTEXT* pstCurrentContext, CONTEXT* pstNextContext );
 #endif /*__ASSEMBLYUTILITY_H__*/

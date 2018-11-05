@@ -139,4 +139,3 @@ BOOL kGetKeyFromKeyQueue( KEYDATA* pstData );
 BOOL kWaitForACKAndPutOtherScanCode( void );
 
 #endif /*__KEYBOARD_H__*/
-
