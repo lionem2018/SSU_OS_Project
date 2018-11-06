@@ -29,7 +29,10 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         { "cpuspeed", "Measure Processor Speed", kMeasureProcessorSpeed },
         { "date", "Show Date And Time", kShowDateAndTime },
         { "createtask", "Create Task", kCreateTestTask },
-};                                     
+};                      
+
+char vcCommandHistoryList[ 10 ][ CONSOLESHELL_MAXCOMMANDBUFFERCOUNT ];
+int iHistoryCount = 0;
 
 //==============================================================================
 //  ���� ���� �����ϴ� �ڵ�
@@ -39,8 +42,7 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
  */
 void kStartConsoleShell( void )
 {
-    char vcCommandHistoryList[ 10 ][ CONSOLESHELL_MAXCOMMANDBUFFERCOUNT ];
-    int iHistoryCount = 0,iHistoryIndex = 0;
+    int iHistoryIndex = 0;
     char vcCommandBuffer[ CONSOLESHELL_MAXCOMMANDBUFFERCOUNT ];
     int iCommandBufferIndex = 0;
     BYTE bKey;
@@ -78,7 +80,7 @@ void kStartConsoleShell( void )
                 vcCommandBuffer[ iCommandBufferIndex ] = '\0';
                 kExecuteCommand( vcCommandBuffer );
 
-                kSetCommandHistory(vcCommandHistoryList, vcCommandBuffer, &iHistoryCount);
+                kSetCommandHistory(vcCommandBuffer);
                 
                 iHistoryIndex = iHistoryCount;
             }
@@ -339,25 +341,26 @@ void kShutdown( const char* pcParamegerBuffer )
     kReboot();
 }
 
-void kSetCommandHistory( char (* historyList)[CONSOLESHELL_MAXCOMMANDBUFFERCOUNT], const char* command, int * count )
+void kSetCommandHistory(const char* command)
 {
-    if (kMemCmp(historyList[(*count) - 1], command, kStrLen(command)))
+    if (kMemCmp(vcCommandHistoryList[iHistoryCount - 1], command, kStrLen(command)))
     {
-        if (*count < 10)
+        if (iHistoryCount < 10)
         {
-            kMemCpy(historyList[(*count)], command, kStrLen(command));
-            (*count)++;
+            kMemSet( vcCommandHistoryList[iHistoryCount], '\0', CONSOLESHELL_MAXCOMMANDBUFFERCOUNT );
+            kMemCpy( vcCommandHistoryList[iHistoryCount], command, kStrLen(command) );
+            iHistoryCount++;
         }
         else
         {
             for (int i = 0; i < 9; i++)
             {
-                kMemSet( historyList[i], '\0', CONSOLESHELL_MAXCOMMANDBUFFERCOUNT );
-                kMemCpy( historyList[i], historyList[i + 1], kStrLen(historyList[i + 1]) );
+                kMemSet( vcCommandHistoryList[i], '\0', CONSOLESHELL_MAXCOMMANDBUFFERCOUNT );
+                kMemCpy( vcCommandHistoryList[i], vcCommandHistoryList[i + 1], kStrLen(vcCommandHistoryList[i+ 1]) );
             }
 
-            kMemSet( historyList[9], '\0', CONSOLESHELL_MAXCOMMANDBUFFERCOUNT );
-            kMemCpy(historyList[9], command, kStrLen(command));
+            kMemSet( vcCommandHistoryList[9], '\0', CONSOLESHELL_MAXCOMMANDBUFFERCOUNT );
+            kMemCpy( vcCommandHistoryList[9], command, kStrLen(command) );
         }
     }
 }
