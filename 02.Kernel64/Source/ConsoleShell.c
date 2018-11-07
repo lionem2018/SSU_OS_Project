@@ -554,7 +554,10 @@ void kPrintTime(BYTE bLastMinute, BYTE bLastSecond, BYTE bCurrentMinute, BYTE bC
         bRunningMinute = bCurrentMinute - bLastMinute;
 
     if(bLastSecond > bCurrentSecond)
+    {
+        bRunningMinute--;
         bRunningSecond = bCurrentSecond + (60 - bLastSecond);
+    }
     else
         bRunningSecond = bCurrentSecond - bLastSecond;
 
@@ -584,8 +587,7 @@ void kPrintProcessingCommandTime( const char* pcParameterBuffer )
     QWORD qwLastTSC, qwTotalTSC = 0;
 
     kDisableInterrupt(); 
-
-    kDisableInterrupt();    
+    
     for( int i = 0 ; i < 20 ; i++ )
     {
         qwLastTSC = kReadTSC();
