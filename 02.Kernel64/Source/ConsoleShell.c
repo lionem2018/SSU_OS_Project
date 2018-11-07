@@ -29,6 +29,7 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         { "cpuspeed", "Measure Processor Speed", kMeasureProcessorSpeed },
         { "date", "Show Date And Time", kShowDateAndTime },
         { "createtask", "Create Task", kCreateTestTask },
+        { "time", "Print time during processing a command", kPrintProcessingCommandTime }
 };                      
 
 char vcCommandHistoryList[ 10 ][ CONSOLESHELL_MAXCOMMANDBUFFERCOUNT ];
@@ -47,11 +48,11 @@ void kStartConsoleShell( void )
     int iCommandBufferIndex = 0;
     BYTE bKey;
     int iCursorX, iCursorY;
-    BYTE bSecond, bMinute, bHour;
+    BYTE bLastSecond, bLastMinute, bCurrentSecond, bCurrentMinute, bHour;
 
     
     kPrintf( CONSOLESHELL_PROMPTMESSAGE );
-    kPrintTime();
+    kPrintTime(0, 0, 0, 0);
     while( 1 )
     {
         // Ű�� ���ŵ� ������ ���?
@@ -78,7 +79,12 @@ void kStartConsoleShell( void )
             {
                 // Ŀ�ǵ� ���ۿ� �ִ� �����? ����
                 vcCommandBuffer[ iCommandBufferIndex ] = '\0';
+
+                kReadRTCTime( &bHour, &bLastMinute, &bLastSecond );
+
                 kExecuteCommand( vcCommandBuffer );
+
+                kReadRTCTime( &bHour, &bCurrentMinute, &bCurrentSecond );
 
                 kSetCommandHistory(vcCommandBuffer);
                 
@@ -87,7 +93,7 @@ void kStartConsoleShell( void )
             
             // ������Ʈ ���? �� Ŀ�ǵ� ���� �ʱ�ȭ
             kPrintf( "%s", CONSOLESHELL_PROMPTMESSAGE ); 
-            kPrintTime();          
+            kPrintTime(bLastMinute, bLastSecond, bCurrentMinute, bCurrentSecond);          
             kMemSet( vcCommandBuffer, '\0', CONSOLESHELL_MAXCOMMANDBUFFERCOUNT );
             iCommandBufferIndex = 0;
         }
@@ -535,22 +541,74 @@ void kCreateTestTask( const char* pcParameterBuffer )
     }
 }
 
-void kPrintTime(){
+void kPrintTime(BYTE bLastMinute, BYTE bLastSecond, BYTE bCurrentMinute, BYTE bCurrentSecond){
     char cline[81] = {'=',};
     char cSecond[3] = {'\0'}, cMinute[3] = {'\0'}, cHour[3] = {'\0'};
+    char cRunningMinute[3] = {'\0'}, cRunningSecond[3] = {'\0'};
     BYTE bSecond, bMinute, bHour;
+    BYTE bRunningMinute, bRunningSecond;
+
+    if(bLastMinute > bCurrentMinute)
+        bRunningMinute = bCurrentMinute + (60 - bLastMinute);
+    else
+        bRunningMinute = bCurrentMinute - bLastMinute;
+
+    if(bLastSecond > bCurrentSecond)
+        bRunningSecond = bCurrentSecond + (60 - bLastSecond);
+    else
+        bRunningSecond = bCurrentSecond - bLastSecond;
 
     kMemSet(cline , '=' , 80);
     kReadRTCTime( &bHour, &bMinute, &bSecond );
     kIToA(bSecond,cSecond, 10);
     kIToA(bMinute,cMinute, 10);
     kIToA(bHour,cHour, 10);
+    kIToA(bRunningMinute, cRunningMinute, 10);
+    kIToA(bRunningSecond, cRunningSecond, 10);
     kPrintStringXY( 0, 23, cline);
     kPrintStringXY( 0, 24, CONSOLESHELL_RUNNINGTIME );
+    kPrintStringXY( 13, 24, cRunningMinute);
+    kPrintStringXY( 15, 24, ":");
+    kPrintStringXY( 16, 24, cRunningSecond);
     kPrintStringXY( 57, 24,CONSOLESHELL_CURRENTTIME);
     kPrintStringXY( 71, 24, cHour);
     kPrintStringXY( 73, 24, ":");
     kPrintStringXY( 74, 24, cMinute);
     kPrintStringXY( 76, 24, ":");
     kPrintStringXY( 77, 24, cSecond);
+}
+
+void kPrintProcessingCommandTime( const char* pcParameterBuffer )
+{
+    QWORD preTime, postTime, resultTime;
+    QWORD qwLastTSC, qwTotalTSC = 0;
+
+    kDisableInterrupt(); 
+
+    kDisableInterrupt();    
+    for( int i = 0 ; i < 20 ; i++ )
+    {
+        qwLastTSC = kReadTSC();
+        kWaitUsingDirectPIT( MSTOCOUNT( 50 ) );
+        qwTotalTSC += kReadTSC() - qwLastTSC;
+    }
+
+    kInitializePIT( MSTOCOUNT( 1 ), TRUE ); 
+    qwTotalTSC /= 1000 * 1000;
+    kPrintf( "milisecond  = %d\n", qwTotalTSC ); 
+    
+    preTime = kReadTSC();
+    kEnableInterrupt();   
+
+    kExecuteCommand(pcParameterBuffer);
+
+    kDisableInterrupt(); 
+    postTime = kReadTSC();
+    kEnableInterrupt(); 
+
+    resultTime = postTime - preTime;
+    resultTime /= 1000 * 1000;
+    kPrintf( "totalTime  = %d\n", resultTime );
+    
+    kPrintf( "Time  = %d\n", resultTime/qwTotalTSC );
 }
