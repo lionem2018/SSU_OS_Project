@@ -45,13 +45,17 @@ void kStartConsoleShell( void )
     int iCommandBufferIndex = 0;
     BYTE bKey;
     int iCursorX, iCursorY;
-    BYTE bSecond, bMinute, bHour;
+    char cline[81] = {'=',};
 
-    
+    kMemSet(cline , '=' , 80);
+    kPrintStringXY( 0, 23, cline);
+    kPrintStringXY( 0, 24, CONSOLESHELL_RUNNINGTIME );
+    kPrintStringXY( 58, 24,CONSOLESHELL_CURRENTTIME);
     kPrintf( CONSOLESHELL_PROMPTMESSAGE );
-    kPrintTime();
+
     while( 1 )
     {
+        
         // Ű�� ���ŵ� ������ ���
         bKey = kGetCh();
         // Backspace Ű ó��
@@ -85,7 +89,9 @@ void kStartConsoleShell( void )
             
             // ������Ʈ ��� �� Ŀ�ǵ� ���� �ʱ�ȭ
             kPrintf( "%s", CONSOLESHELL_PROMPTMESSAGE ); 
-            kPrintTime();          
+            kPrintStringXY( 0, 23, cline);
+            kPrintStringXY( 0, 24, CONSOLESHELL_RUNNINGTIME );
+            kPrintStringXY( 58, 24,CONSOLESHELL_CURRENTTIME);         
             kMemSet( vcCommandBuffer, '\0', CONSOLESHELL_MAXCOMMANDBUFFERCOUNT );
             iCommandBufferIndex = 0;
         }
@@ -530,24 +536,4 @@ void kCreateTestTask( const char* pcParameterBuffer )
         // 위에서 키가 입력되면 태스크를 전환
         kSwitchContext( &( gs_vstTask[ 0 ].stContext ), &( gs_vstTask[ 1 ].stContext ) );
     }
-}
-
-void kPrintTime(){
-    char cline[81] = {'=',};
-    char cSecond[3] = {'\0'}, cMinute[3] = {'\0'}, cHour[3] = {'\0'};
-    BYTE bSecond, bMinute, bHour;
-
-    kMemSet(cline , '=' , 80);
-    kReadRTCTime( &bHour, &bMinute, &bSecond );
-    kIToA(bSecond,cSecond, 10);
-    kIToA(bMinute,cMinute, 10);
-    kIToA(bHour,cHour, 10);
-    kPrintStringXY( 0, 23, cline);
-    kPrintStringXY( 0, 24, CONSOLESHELL_RUNNINGTIME );
-    kPrintStringXY( 57, 24,CONSOLESHELL_CURRENTTIME);
-    kPrintStringXY( 71, 24, cHour);
-    kPrintStringXY( 73, 24, ":");
-    kPrintStringXY( 74, 24, cMinute);
-    kPrintStringXY( 76, 24, ":");
-    kPrintStringXY( 77, 24, cSecond);
 }

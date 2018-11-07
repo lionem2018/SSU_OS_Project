@@ -81,5 +81,4 @@ void kMeasureProcessorSpeed( const char* pcParameterBuffer );
 void kShowDateAndTime( const char* pcParameterBuffer );
 void kTestTask( void );
 void kCreateTestTask( const char* pcParameterBuffer );
-void kPrintTime();
 #endif /*__CONSOLESHELL_H__*/
