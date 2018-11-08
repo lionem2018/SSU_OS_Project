@@ -549,14 +549,14 @@ void kPrintTime(BYTE bLastMinute, BYTE bLastSecond, BYTE bCurrentMinute, BYTE bC
     BYTE bRunningMinute, bRunningSecond;
 
     if(bLastMinute > bCurrentMinute)
-        bRunningMinute = bCurrentMinute + (60 - bLastMinute);
+        bRunningMinute = 60 + bCurrentMinute - bLastMinute;
     else
         bRunningMinute = bCurrentMinute - bLastMinute;
 
     if(bLastSecond > bCurrentSecond)
     {
         bRunningMinute--;
-        bRunningSecond = bCurrentSecond + (60 - bLastSecond);
+        bRunningSecond = 60 + bCurrentSecond - bLastSecond;
 
         if(bRunningSecond > 60)
             bRunningSecond -= 60;
@@ -588,6 +588,7 @@ void kPrintProcessingCommandTime( const char* pcParameterBuffer )
 {
     QWORD lastTime, currentTime, resultTime1, resultTime2;
     QWORD qwLastTSC, qwTotalTSC = 0;
+    double baseTSC;
 
     // kDisableInterrupt();
 
@@ -624,8 +625,7 @@ void kPrintProcessingCommandTime( const char* pcParameterBuffer )
         kWaitUsingDirectPIT( MSTOCOUNT( 1 ) );
         qwTotalTSC += kReadTSC() - qwLastTSC;
     
-    //qwTotalTSC /= 1000000000;
-    kPrintf( "%d per 10ns\n", qwTotalTSC / 100000 ); 
+    kPrintf( "%d per 10ns\n", qwTotalTSC / 100000 );
     
     lastTime = kReadTSC();
     kEnableInterrupt();  
@@ -637,12 +637,20 @@ void kPrintProcessingCommandTime( const char* pcParameterBuffer )
     kEnableInterrupt(); 
 
     kPrintf( "currentTime(hex): %q\n", currentTime );
-    resultTime2 = resultTime1 = (currentTime - lastTime);
+    resultTime1 = (currentTime - lastTime);
     //resultTime2 = (QWORD) (resultTime2 / ((double)qwTotalTSC / 1000000));
     
     kPrintf( "currentTime - lastTime(hex): %q\n", resultTime1 );
-
     kPrintf( "Running Time1(hex): %q\n", (resultTime1 * 10) / (qwTotalTSC / 100000) );
+
+    resultTime1 = (resultTime1 * 10) / (qwTotalTSC / 100000);
+    int minute = resultTime1 / 60000000000;
+    int second = (resultTime1 % 60000000000) / 1000000000;
+    int msecond = (resultTime1 % 1000000000) / 1000000;
+    int usecond = (resultTime1 % 1000000) / 1000;
+    int nsecond = resultTime1 % 1000;
+
+    kPrintf("real %d:%d:%d:%d:%d\n", minute, second, msecond, usecond, nsecond);
     //kPrintf( "Running Time2(hex): %q\n", resultTime2 );
 
     kInitializePIT( MSTOCOUNT( 1 ), TRUE ); 
