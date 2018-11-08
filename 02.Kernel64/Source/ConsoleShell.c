@@ -557,6 +557,9 @@ void kPrintTime(BYTE bLastMinute, BYTE bLastSecond, BYTE bCurrentMinute, BYTE bC
     {
         bRunningMinute--;
         bRunningSecond = bCurrentSecond + (60 - bLastSecond);
+
+        if(bRunningSecond > 60)
+            bRunningSecond -= 60;
     }
     else
         bRunningSecond = bCurrentSecond - bLastSecond;
@@ -583,34 +586,83 @@ void kPrintTime(BYTE bLastMinute, BYTE bLastSecond, BYTE bCurrentMinute, BYTE bC
 
 void kPrintProcessingCommandTime( const char* pcParameterBuffer )
 {
-    QWORD preTime, postTime, resultTime;
+    QWORD lastTime, currentTime, resultTime1, resultTime2;
     QWORD qwLastTSC, qwTotalTSC = 0;
 
-    kDisableInterrupt(); 
+    // kDisableInterrupt();
+
+    // qwLastTSC = kReadTSC();
+    // kWaitUsingDirectPIT( MSTOCOUNT( 1 ) );
+    // qwTotalTSC += kReadTSC() - qwLastTSC;
     
-    for( int i = 0 ; i < 20 ; i++ )
-    {
+    // //qwTotalTSC /= 1000000;
+    // kPrintf( "USecond  = %d\n", qwTotalTSC ); 
+    
+    // preTime = kReadTSC();
+    // kEnableInterrupt();  
+
+    // kExecuteCommand(pcParameterBuffer); 
+
+    // kDisableInterrupt(); 
+    // postTime = kReadTSC();
+    // kEnableInterrupt(); 
+
+    // kPrintf( "postTime  = %d\n", postTime );
+    // resultTime = postTime - preTime;
+    // //resultTime /= 1000 * 1000;
+    // kPrintf( "postTime - preTime = %d\n", resultTime );
+
+    // kPrintf( "Time  = %d\n", resultTime / qwTotalTSC  );
+
+    // kInitializePIT( MSTOCOUNT( 1 ), TRUE ); 
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    kDisableInterrupt();
+
         qwLastTSC = kReadTSC();
-        kWaitUsingDirectPIT( MSTOCOUNT( 50 ) );
+        kWaitUsingDirectPIT( MSTOCOUNT( 1 ) );
         qwTotalTSC += kReadTSC() - qwLastTSC;
-    }
-
-    kInitializePIT( MSTOCOUNT( 1 ), TRUE ); 
-    qwTotalTSC /= 1000 * 1000;
-    kPrintf( "milisecond  = %d\n", qwTotalTSC ); 
     
-    preTime = kReadTSC();
-    kEnableInterrupt();   
+    //qwTotalTSC /= 1000000000;
+    kPrintf( "%d per 10ns\n", qwTotalTSC / 100000 ); 
+    
+    lastTime = kReadTSC();
+    kEnableInterrupt();  
 
-    kExecuteCommand(pcParameterBuffer);
+    kExecuteCommand(pcParameterBuffer); 
 
     kDisableInterrupt(); 
-    postTime = kReadTSC();
+    currentTime = kReadTSC();
     kEnableInterrupt(); 
 
-    resultTime = postTime - preTime;
-    resultTime /= 1000 * 1000;
-    kPrintf( "totalTime  = %d\n", resultTime );
+    kPrintf( "currentTime(hex): %q\n", currentTime );
+    resultTime2 = resultTime1 = (currentTime - lastTime);
+    //resultTime2 = (QWORD) (resultTime2 / ((double)qwTotalTSC / 1000000));
     
-    kPrintf( "Time  = %d\n", resultTime/qwTotalTSC );
+    kPrintf( "currentTime - lastTime(hex): %q\n", resultTime1 );
+
+    kPrintf( "Running Time1(hex): %q\n", (resultTime1 * 10) / (qwTotalTSC / 100000) );
+    //kPrintf( "Running Time2(hex): %q\n", resultTime2 );
+
+    kInitializePIT( MSTOCOUNT( 1 ), TRUE ); 
+
+    /////////////////////////////////////////////////////////////////////////////////////////
+
+    // WORD wLastCounter0;
+    // WORD wCurrentCounter0;
+    
+    // // PIT 컨트롤러를 0~0xFFFF까지 반복해서 카운팅하도록 설정
+    // kInitializePIT( 0, TRUE );
+    
+    // // 지금부터 wCount 이상 증가할 때까지 대기
+    // wLastCounter0 = kReadCounter0();
+
+    // kExecuteCommand(pcParameterBuffer);
+
+    // wCurrentCounter0 = kReadCounter0();
+    
+    // kPrintf( "Time  = %q\n", wLastCounter0 - wCurrentCounter0  );
+
+    // kInitializePIT( MSTOCOUNT( 1 ), TRUE ); 
 }
