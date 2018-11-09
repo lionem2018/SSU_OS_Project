@@ -349,7 +349,7 @@ void kShutdown( const char* pcParamegerBuffer )
 
 void kSetCommandHistory(const char* command)
 {
-    if (kMemCmp(vcCommandHistoryList[iHistoryCount - 1], command, kStrLen(command)))
+    if (kMemCmp(vcCommandHistoryList[iHistoryCount - 1], command, CONSOLESHELL_MAXCOMMANDBUFFERCOUNT))
     {
         if (iHistoryCount < 10)
         {
@@ -588,7 +588,7 @@ void kPrintProcessingCommandTime( const char* pcParameterBuffer )
 {
     QWORD lastTime, currentTime, resultTime1, resultTime2;
     QWORD qwLastTSC, qwTotalTSC = 0;
-    double baseTSC;
+    //double baseTSC;
 
     // kDisableInterrupt();
 
@@ -621,9 +621,9 @@ void kPrintProcessingCommandTime( const char* pcParameterBuffer )
 
     kDisableInterrupt();
 
-        qwLastTSC = kReadTSC();
-        kWaitUsingDirectPIT( MSTOCOUNT( 1 ) );
-        qwTotalTSC += kReadTSC() - qwLastTSC;
+    qwLastTSC = kReadTSC();
+    kWaitUsingDirectPIT( MSTOCOUNT( 1 ) );
+    qwTotalTSC += kReadTSC() - qwLastTSC;
     
     kPrintf( "%d per 10ns\n", qwTotalTSC / 100000 );
     
@@ -644,11 +644,11 @@ void kPrintProcessingCommandTime( const char* pcParameterBuffer )
     kPrintf( "Running Time1(hex): %q\n", (resultTime1 * 10) / (qwTotalTSC / 100000) );
 
     resultTime1 = (resultTime1 * 10) / (qwTotalTSC / 100000);
-    int minute = resultTime1 / 60000000000;
-    int second = (resultTime1 % 60000000000) / 1000000000;
-    int msecond = (resultTime1 % 1000000000) / 1000000;
-    int usecond = (resultTime1 % 1000000) / 1000;
-    int nsecond = resultTime1 % 1000;
+    QWORD minute = resultTime1 / 60000000000;
+    QWORD second = (resultTime1 % 60000000000) / 1000000000;
+    QWORD msecond = (resultTime1 % 1000000000) / 1000000;
+    QWORD usecond = (resultTime1 % 1000000) / 1000;
+    QWORD nsecond = resultTime1 % 1000;
 
     kPrintf("real %d:%d:%d:%d:%d\n", minute, second, msecond, usecond, nsecond);
     //kPrintf( "Running Time2(hex): %q\n", resultTime2 );
