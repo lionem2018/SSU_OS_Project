@@ -56,6 +56,7 @@ void kStartConsoleShell( void )
     while( 1 )
     {
         // Å°ï¿½ï¿½ ï¿½ï¿½ï¿½Åµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿?
+        bLastSecond = bLastMinute = bCurrentSecond = bCurrentMinute = bHour = 0;
         bKey = kGetCh();
         // Backspace Å° Ã³ï¿½ï¿½
         if( bKey == KEY_BACKSPACE )
@@ -544,8 +545,9 @@ void kCreateTestTask( const char* pcParameterBuffer )
 void kPrintTime(BYTE bLastMinute, BYTE bLastSecond, BYTE bCurrentMinute, BYTE bCurrentSecond){
     char cline[81] = {'=',};
     char cSecond[3] = {'\0'}, cMinute[3] = {'\0'}, cHour[3] = {'\0'};
-    char cRunningMinute[3] = {'\0'}, cRunningSecond[3] = {'\0'};
     BYTE bSecond, bMinute, bHour;
+    /////////////////////////
+    char cRunningMinute[3] = {'\0'}, cRunningSecond[3] = {'\0'};
     BYTE bRunningMinute, bRunningSecond;
 
     if(bLastMinute > bCurrentMinute)
@@ -563,12 +565,14 @@ void kPrintTime(BYTE bLastMinute, BYTE bLastSecond, BYTE bCurrentMinute, BYTE bC
     }
     else
         bRunningSecond = bCurrentSecond - bLastSecond;
+    /////////////////////////
 
     kMemSet(cline , '=' , 80);
     kReadRTCTime( &bHour, &bMinute, &bSecond );
     kIToA(bSecond,cSecond, 10);
     kIToA(bMinute,cMinute, 10);
     kIToA(bHour,cHour, 10);
+    ////////////////////////////////
     kIToA(bRunningMinute, cRunningMinute, 10);
     kIToA(bRunningSecond, cRunningSecond, 10);
     kPrintStringXY( 0, 23, cline);
@@ -576,6 +580,7 @@ void kPrintTime(BYTE bLastMinute, BYTE bLastSecond, BYTE bCurrentMinute, BYTE bC
     kPrintStringXY( 13, 24, cRunningMinute);
     kPrintStringXY( 15, 24, ":");
     kPrintStringXY( 16, 24, cRunningSecond);
+    ////////////////////////////////////
     kPrintStringXY( 57, 24,CONSOLESHELL_CURRENTTIME);
     kPrintStringXY( 71, 24, cHour);
     kPrintStringXY( 73, 24, ":");
@@ -586,7 +591,7 @@ void kPrintTime(BYTE bLastMinute, BYTE bLastSecond, BYTE bCurrentMinute, BYTE bC
 
 void kPrintProcessingCommandTime( const char* pcParameterBuffer )
 {
-    QWORD lastTime, currentTime, resultTime1, resultTime2;
+    QWORD lastTime, currentTime, resultTime;
     QWORD qwLastTSC, qwTotalTSC = 0;
     //double baseTSC;
 
@@ -636,41 +641,24 @@ void kPrintProcessingCommandTime( const char* pcParameterBuffer )
     currentTime = kReadTSC();
     kEnableInterrupt(); 
 
+    kPrintf( "lastTime(hex): %q\n", lastTime );
     kPrintf( "currentTime(hex): %q\n", currentTime );
-    resultTime1 = (currentTime - lastTime);
+    resultTime = (currentTime - lastTime);
     //resultTime2 = (QWORD) (resultTime2 / ((double)qwTotalTSC / 1000000));
     
-    kPrintf( "currentTime - lastTime(hex): %q\n", resultTime1 );
-    kPrintf( "Running Time1(hex): %q\n", (resultTime1 * 10) / (qwTotalTSC / 100000) );
+    kPrintf( "currentTime - lastTime(hex): %q\n", resultTime );
+    kPrintf( "Running Time1(hex): %q\n", (resultTime * 10) / (qwTotalTSC / 100000) );
 
-    resultTime1 = (resultTime1 * 10) / (qwTotalTSC / 100000);
-    QWORD minute = resultTime1 / 60000000000;
-    QWORD second = (resultTime1 % 60000000000) / 1000000000;
-    QWORD msecond = (resultTime1 % 1000000000) / 1000000;
-    QWORD usecond = (resultTime1 % 1000000) / 1000;
-    QWORD nsecond = resultTime1 % 1000;
+    resultTime = (resultTime * 10) / (qwTotalTSC / 100000);
+    QWORD minute = resultTime / 60000000000;
+    QWORD second = (resultTime % 60000000000) / 1000000000;
+    QWORD msecond = (resultTime % 1000000000) / 1000000;
+    QWORD usecond = (resultTime % 1000000) / 1000;
+    QWORD nsecond = resultTime % 1000;
 
     kPrintf("real %d:%d:%d:%d:%d\n", minute, second, msecond, usecond, nsecond);
     //kPrintf( "Running Time2(hex): %q\n", resultTime2 );
 
     kInitializePIT( MSTOCOUNT( 1 ), TRUE ); 
 
-    /////////////////////////////////////////////////////////////////////////////////////////
-
-    // WORD wLastCounter0;
-    // WORD wCurrentCounter0;
-    
-    // // PIT ÄÁÆ®·Ñ·¯¸¦ 0~0xFFFF±îÁö ¹Ýº¹ÇØ¼­ Ä«¿îÆÃÇÏµµ·Ï ¼³Á¤
-    // kInitializePIT( 0, TRUE );
-    
-    // // Áö±ÝºÎÅÍ wCount ÀÌ»ó Áõ°¡ÇÒ ¶§±îÁö ´ë±â
-    // wLastCounter0 = kReadCounter0();
-
-    // kExecuteCommand(pcParameterBuffer);
-
-    // wCurrentCounter0 = kReadCounter0();
-    
-    // kPrintf( "Time  = %q\n", wLastCounter0 - wCurrentCounter0  );
-
-    // kInitializePIT( MSTOCOUNT( 1 ), TRUE ); 
 }
