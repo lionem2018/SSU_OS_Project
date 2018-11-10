@@ -31,13 +31,13 @@ void Main( void )
     int iCursorX, iCursorY;
 
     // 콘솔을 먼저 초기화한 후, 다음 작업을 수행
-    kInitializeConsole( 0, 10 );    
+    kInitializeConsole( 0, 11 );    
     kPrintf( "Switch To IA-32e Mode Success~!!\n" );
     kPrintf( "IA-32e C Language Kernel Start..............[Pass]\n" );
     kPrintf( "Initialize Console..........................[Pass]\n" );
 
     // print test on 0xAB8000 (another virtual video address)
-    kPrintStringOn0xAB8000( 0, 19, "This message is printed through the video memory relocated to 0xAB8000" );
+    kPrintStringOn0xAB8000( 0, 20, "This message is printed through the video memory relocated to 0xAB8000" );
     
     // write test at 0x1FF000 (occur error)
     //kWriteTestAt0x1FF000();

@@ -53,7 +53,7 @@ void kStartConsoleShell( void )
     kPrintStringXY( 0, 23, cline);
     kPrintStringXY( 0, 24, CONSOLESHELL_RUNNINGTIME );
     kPrintStringXY( 58,24,CONSOLESHELL_CURRENTTIME);
-    kPrintStringXY( 0,20, CONSOLESHELL_PROMPTMESSAGE );
+    kPrintStringXY( 0,21, CONSOLESHELL_PROMPTMESSAGE );
     kPrintTime(0, 0, 0, 0);
     while( 1 )
     {
