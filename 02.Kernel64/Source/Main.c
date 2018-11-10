@@ -37,7 +37,7 @@ void Main( void )
     kPrintf( "Initialize Console..........................[Pass]\n" );
 
     // print test on 0xAB8000 (another virtual video address)
-    kPrintStringOn0xAB8000( 0, 18, "This message is printed through the video memory relocated to 0xAB8000" );
+    kPrintStringOn0xAB8000( 0, 19, "This message is printed through the video memory relocated to 0xAB8000" );
     
     // write test at 0x1FF000 (occur error)
     //kWriteTestAt0x1FF000();
@@ -65,10 +65,11 @@ void Main( void )
     kSetCursor( 45, iCursorY++ );
     kPrintf( "Pass], Size = %d MB\n", kGetTotalRAMSize() );
 
-    kPrintString( 0, 15, "Keyboard Activate And Queue Initialize......[    ]" );
+    kPrintf("Keyboard Activate And Queue Initialize......[    ]" );
     // Ű���带 Ȱ��ȭ
     if( kInitializeKeyboard() == TRUE )
     {
+        //iCursorY--;
         kSetCursor( 45, iCursorY++ );
         kPrintf( "Pass\n" );
         kChangeKeyboardLED( FALSE, FALSE, FALSE );
@@ -87,6 +88,7 @@ void Main( void )
     kEnableInterrupt();
     kSetCursor( 45, iCursorY++ );
     kPrintf( "Pass\n" );
+    kSetCursor( 7, ++iCursorY );
 /*
     while( 1 )
     {
