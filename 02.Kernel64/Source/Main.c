@@ -18,7 +18,7 @@ void kPrintStringOn0xAB8000( int iX, int iY, const char* pcString );
 void kWriteTestAt0x1FF000();
 
 /**
- *  �Ʒ� �Լ��� C ���? Ŀ���� ���� �κ���
+ *  �Ʒ� �Լ��� C ���?? Ŀ���� ���� �κ���
  */
 void Main( void )
 {
@@ -30,18 +30,15 @@ void Main( void )
 
     int iCursorX, iCursorY;
 
-    // 콘솔을 먼저 초기화한 후, 다음 작업을 수행
+    // 콘솔?�� 먼�?? 초기?��?�� ?��, ?��?�� ?��?��?�� ?��?��
     kInitializeConsole( 0, 11 );    
     kPrintf( "Switch To IA-32e Mode Success~!!\n" );
     kPrintf( "IA-32e C Language Kernel Start..............[Pass]\n" );
     kPrintf( "Initialize Console..........................[Pass]\n" );
 
-    // print test on 0xAB8000 (another virtual video address)
-    kPrintStringOn0xAB8000( 0, 20, "This message is printed through the video memory relocated to 0xAB8000" );
-    
     // write test at 0x1FF000 (occur error)
     //kWriteTestAt0x1FF000();
-    // 부팅 상황을 화면에 출력
+    // �??�� ?��?��?�� ?��면에 출력
     kGetCursor( &iCursorX, &iCursorY );
     kPrintf( "GDT Initialize And Switch For IA-32e Mode...[    ]" );
     kInitializeGDTTableAndTSS();
@@ -82,20 +79,24 @@ void Main( void )
     }
 
     kPrintf( "PIC Controller And Interrupt Initialize.....[    ]" );
-    // PIC ��Ʈ�ѷ� �ʱ�ȭ �� ��� ���ͷ�Ʈ Ȱ��ȭ
+    // PIC ��Ʈ�ѷ� �ʱ�ȭ �� ���? ���ͷ�Ʈ Ȱ��ȭ
     kInitializePIC();
     kMaskPICInterrupt( 0 );
     kEnableInterrupt();
     kSetCursor( 45, iCursorY++ );
     kPrintf( "Pass\n" );
-    kSetCursor( 7, ++iCursorY );
+
+    // print test on 0xAB8000 (another virtual video address)
+    kPrintStringOn0xAB8000( 0, 20, "This message is printed through the video memory relocated to 0xAB8000" );
+    
+    kPrintf( "\n" );
 /*
     while( 1 )
     {
         // Ű ť�� �����Ͱ� ������ Ű�� ó����
         if( kGetKeyFromKeyQueue( &stData ) == TRUE )
         {
-            // Ű�� ���������� Ű�� ASCII �ڵ� ���� ȭ�鿡 ���
+            // Ű�� ���������� Ű�� ASCII �ڵ� ���� ȭ�鿡 ���?
             if( stData.bFlags & KEY_FLAGS_DOWN )
             {
                 // Ű �������� ACII �ڵ� ���� ����
@@ -107,7 +108,7 @@ void Main( void )
                 if( vcTemp[ 0 ] == '0' )
                 {
                     // �Ʒ� �ڵ带 �����ϸ� Divide Error ���ܰ� �߻��Ͽ�
-                    // Ŀ���� �ӽ� �ڵ鷯�� �����
+                    // Ŀ���� �ӽ� �ڵ鷯�� �����?
                     //bTemp = bTemp / 0;
                     kWriteTestAt0x1FF000();
                 }
@@ -118,17 +119,17 @@ void Main( void )
 }
 
 /**
- *  ���ڿ��� X, Y ��ġ�� ���?
+ *  ���ڿ��� X, Y ��ġ�� ���??
  */
 void kPrintString( int iX, int iY, const char* pcString )
 {
     CHARACTER* pstScreen = ( CHARACTER* ) 0xB8000;
     int i;
     
-    // X, Y ��ǥ �� �̿��ؼ� ���ڿ��� �����? ��巹����? ���?
+    // X, Y ��ǥ �� �̿��ؼ� ���ڿ��� �����?? ��巹����?? ���??
     pstScreen += ( iY * 80 ) + iX;
 
-    // NULL�� ���� ������ ���ڿ� ���?
+    // NULL�� ���� ������ ���ڿ� ���??
     for( i = 0 ; pcString[ i ] != 0 ; i++ )
     {
         pstScreen[ i ].bCharactor = pcString[ i ];
@@ -140,10 +141,10 @@ void kPrintStringOn0xAB8000(int iX, int iY, const char* pcString)
     CHARACTER* pstScreen = ( CHARACTER* ) 0xAB8000;
     int i;
     
-    // X, Y ��ǥ�� �̿��ؼ� ���ڿ��� ����� ��巹���� ���
+    // X, Y ��ǥ�� �̿��ؼ� ���ڿ��� �����? ��巹����? ���?
     pstScreen += ( iY * 80 ) + iX;
     
-    // NULL�� ���� ������ ���ڿ� ���
+    // NULL�� ���� ������ ���ڿ� ���?
     for( i = 0 ; pcString[ i ] != 0 ; i++ )
     {
         pstScreen[ i ].bCharactor = pcString[ i ];

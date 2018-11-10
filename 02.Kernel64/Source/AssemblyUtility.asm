@@ -2,13 +2,13 @@
 # date      2009/01/07
 # author    kkamagui 
 #           Copyright(c)2008 All rights reserved by kkamagui
-# brief     ������� ��ƿ��Ƽ �Լ��� ���õ� �ҽ� ����
+# brief     �������? ��ƿ��Ƽ �Լ��� ���õ� �ҽ� ����
 
-[BITS 64]           ; ������ �ڵ�� 64��Ʈ �ڵ�� ����
+[BITS 64]           ; ������ �ڵ��? 64��Ʈ �ڵ��? ����
 
 SECTION .text       ; text ����(���׸�Ʈ)�� ����
 
-; C ���� ȣ���� �� �ֵ��� �̸��� ������(Export)
+; C ����? ȣ���� �� �ֵ��� �̸��� ������(Export)
 
 global kInPortByte, kOutPortByte, kLoadGDTR, kLoadTR, kLoadIDTR
 global kEnableInterrupt, kDisableInterrupt, kReadRFLAGS, getFaultAddress
@@ -17,50 +17,50 @@ global kSwitchContext
 ; ��Ʈ�κ��� 1����Ʈ�� ����
 ;   PARAM: ��Ʈ ��ȣ
 kInPortByte:
-    push rdx        ; �Լ����� �ӽ÷� ����ϴ� �������͸� ���ÿ� ����
+    push rdx        ; �Լ����� �ӽ÷� ����ϴ�? �������͸� ���ÿ� ����
                     ; �Լ��� ������ �κп��� ���ÿ� ���Ե� ���� ���� ����
 
-    mov rdx, rdi    ; RDX �������Ϳ� �Ķ���� 1(��Ʈ ��ȣ)�� ����
+    mov rdx, rdi    ; RDX �������Ϳ� �Ķ����? 1(��Ʈ ��ȣ)�� ����
     mov rax, 0      ; RAX �������͸� �ʱ�ȭ
-    in al, dx       ; DX �������Ϳ� ����� ��Ʈ ��巹������ �� ����Ʈ�� �о�
+    in al, dx       ; DX �������Ϳ� �����? ��Ʈ ��巹������? �� ����Ʈ�� �о�
                     ; AL �������Ϳ� ����, AL �������ʹ� �Լ��� ��ȯ ������ ����
 
-    pop rdx         ; �Լ����� ����� ���� �������͸� ����
+    pop rdx         ; �Լ����� �����? ���� �������͸� ����
     ret             ; �Լ��� ȣ���� ���� �ڵ��� ��ġ�� ����
 
 ; ��Ʈ�� 1����Ʈ�� ��
 ;   PARAM: ��Ʈ ��ȣ, ������
 kOutPortByte:
-    push rdx        ; �Լ����� �ӽ÷� ����ϴ� �������͸� ���ÿ� ����
+    push rdx        ; �Լ����� �ӽ÷� ����ϴ�? �������͸� ���ÿ� ����
     push rax        ; �Լ��� ������ �κп��� ���ÿ� ���Ե� ���� ���� ����
     
-    mov rdx, rdi    ; RDX �������Ϳ� �Ķ���� 1(��Ʈ ��ȣ)�� ����
-    mov rax, rsi    ; RAX �������Ϳ� �Ķ���� 2(������)�� ����
-    out dx, al      ; DX �������Ϳ� ����� ��Ʈ ��巹���� AL �������Ϳ� �����
+    mov rdx, rdi    ; RDX �������Ϳ� �Ķ����? 1(��Ʈ ��ȣ)�� ����
+    mov rax, rsi    ; RAX �������Ϳ� �Ķ����? 2(������)�� ����
+    out dx, al      ; DX �������Ϳ� �����? ��Ʈ ��巹����? AL �������Ϳ� �����?
                     ; �� ����Ʈ�� ��
 
-    pop rax         ; �Լ����� ����� ���� �������͸� ����
+    pop rax         ; �Լ����� �����? ���� �������͸� ����
     pop rdx
     ret             ; �Լ��� ȣ���� ���� �ڵ��� ��ġ�� ����
 
 ; GDTR �������Ϳ� GDT ���̺��� ����
-;   PARAM: GDT ���̺��� ������ �����ϴ� �ڷᱸ���� ��巹��
+;   PARAM: GDT ���̺��� ������ �����ϴ� �ڷᱸ���� ��巹��?
 kLoadGDTR:
-    lgdt [ rdi ]    ; �Ķ���� 1(GDTR�� ��巹��)�� ���μ����� �ε��Ͽ�
+    lgdt [ rdi ]    ; �Ķ����? 1(GDTR�� ��巹��?)�� ���μ����� �ε��Ͽ�
                     ; GDT ���̺��� ����
     ret
 
 ; TR �������Ϳ� TSS ���׸�Ʈ ��ũ���� ����
 ;   PARAM: TSS ���׸�Ʈ ��ũ������ ������
 kLoadTR:
-    ltr di          ; �Ķ���� 1(TSS ���׸�Ʈ ��ũ������ ������)�� ���μ�����
+    ltr di          ; �Ķ����? 1(TSS ���׸�Ʈ ��ũ������ ������)�� ���μ�����
                     ; �����Ͽ� TSS ���׸�Ʈ�� �ε�
     ret
 
 ; IDTR �������Ϳ� IDT ���̺��� ����
-;   PARAM: IDT ���̺��� ������ �����ϴ� �ڷᱸ���� ��巹��
+;   PARAM: IDT ���̺��� ������ �����ϴ� �ڷᱸ���� ��巹��?
 kLoadIDTR:
-    lidt [ rdi ]    ; �Ķ���� 1(IDTR�� ��巹��)�� ���μ����� �ε��Ͽ�
+    lidt [ rdi ]    ; �Ķ����? 1(IDTR�� ��巹��?)�� ���μ����� �ε��Ͽ�
                     ; IDT ���̺��� ����
     ret
 
@@ -80,7 +80,7 @@ kDisableInterrupt:
 ;   PARAM: ����
 kReadRFLAGS:
     pushfq                  ; RFLAGS �������͸� ���ÿ� ����
-    pop rax                 ; ���ÿ� ����� RFLAGS �������͸� RAX �������Ϳ� �����Ͽ�
+    pop rax                 ; ���ÿ� �����? RFLAGS �������͸� RAX �������Ϳ� �����Ͽ�
                             ; �Լ��� ��ȯ ������ ����
     ret
 
@@ -88,27 +88,27 @@ getFaultAddress:
     mov rax, cr2
     ret
 
-; 타임 스탬프 카운터를 읽어서 반환 
-;   PARAM: 없음    
+; ????�� ?��?��?�� 카운?���? ?��?��?�� 반환 
+;   PARAM: ?��?��    
 kReadTSC:
-    push rdx                ; RDX 레지스터를 스택에 저장
-    cpuid
-    rdtsc                   ; 타임 스탬프 카운터를 읽어서 RDX:RAX에 저장
+    push rdx                ; RDX ?���??��?���? ?��?��?�� ????��
     
-    shl rdx, 32             ; RDX 레지스터에 있는 상위 32비트 TSC 값과 RAX 레지스터에
-    or rax, rdx             ; 있는 하위 32비트 TSC 값을 OR하여 RAX 레지스터에 64비트 
-                            ; TSC 값을 저장
+    rdtsc                   ; ????�� ?��?��?�� 카운?���? ?��?��?�� RDX:RAX?�� ????��
+    
+    shl rdx, 32             ; RDX ?���??��?��?�� ?��?�� ?��?�� 32비트 TSC 값과 RAX ?���??��?��?��
+    or rax, rdx             ; ?��?�� ?��?�� 32비트 TSC 값을 OR?��?�� RAX ?���??��?��?�� 64비트 
+                            ; TSC 값을 ????��
     
     pop rdx
     ret
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-;   태스크 관련 어셈블리어 함수
+;   ?��?��?�� �??�� ?��?��블리?�� ?��?��
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; 콘텍스트를 저장하고 셀렉터를 교체하는 매크로
-%macro KSAVECONTEXT 0       ; 파라미터를 전달받지 않는 KSAVECONTEXT 매크로 정의
-    ; RBP 레지스터부터 GS 세그먼트 셀렉터까지 모두 스택에 삽입
+; 콘텍?��?���? ????��?���? ????��?���? 교체?��?�� 매크�?
+%macro KSAVECONTEXT 0       ; ?��?��미터�? ?��?��받�?? ?��?�� KSAVECONTEXT 매크�? ?��?��
+    ; RBP ?���??��?���??�� GS ?��그먼?�� ????��?��까�?? 모두 ?��?��?�� ?��?��
     push rbp
     push rax
     push rbx
@@ -125,23 +125,23 @@ kReadTSC:
     push r14
     push r15
     
-    mov ax, ds      ; DS 세그먼트 셀렉터와 ES 세그먼트 셀렉터는 스택에 직접
-    push rax        ; 삽입할 수 없으므로, RAX 레지스터에 저장한 후 스택에 삽입
+    mov ax, ds      ; DS ?��그먼?�� ????��?��??? ES ?��그먼?�� ????��?��?�� ?��?��?�� 직접
+    push rax        ; ?��?��?�� ?�� ?��?���?�?, RAX ?���??��?��?�� ????��?�� ?�� ?��?��?�� ?��?��
     mov ax, es
     push rax
     push fs
     push gs 
-%endmacro       ; 매크로 끝
+%endmacro       ; 매크�? ?��
 
 
-; 콘텍스트를 복원하는 매크로
-%macro KLOADCONTEXT 0   ; 파라미터를 전달받지 않는 KSAVECONTEXT 매크로 정의
-    ; GS 세그먼트 셀렉터부터 RBP 레지스터까지 모두 스택에서 꺼내 복원
+; 콘텍?��?���? 복원?��?�� 매크�?
+%macro KLOADCONTEXT 0   ; ?��?��미터�? ?��?��받�?? ?��?�� KSAVECONTEXT 매크�? ?��?��
+    ; GS ?��그먼?�� ????��?���??�� RBP ?���??��?��까�?? 모두 ?��?��?��?�� 꺼내 복원
     pop gs
     pop fs
     pop rax
-    mov es, ax      ; ES 세그먼트 셀렉터와 DS 세그먼트 셀렉터는 스택에서 직접
-    pop rax         ; 꺼내 복원할 수 없으므로, RAX 레지스터에 저장한 뒤에 복원
+    mov es, ax      ; ES ?��그먼?�� ????��?��??? DS ?��그먼?�� ????��?��?�� ?��?��?��?�� 직접
+    pop rax         ; 꺼내 복원?�� ?�� ?��?���?�?, RAX ?���??��?��?�� ????��?�� ?��?�� 복원
     mov ds, ax
     
     pop r15
@@ -159,64 +159,64 @@ kReadTSC:
     pop rbx
     pop rax
     pop rbp        
-%endmacro       ; 매크로 끝
+%endmacro       ; 매크�? ?��
 
-; Current Context에 현재 콘텍스트를 저장하고 Next Task에서 콘텍스트를 복구
+; Current Context?�� ?��?�� 콘텍?��?���? ????��?���? Next Task?��?�� 콘텍?��?���? 복구
 ;   PARAM: Current Context, Next Context
 kSwitchContext:
-    push rbp        ; 스택에 RBP 레지스터를 저장하고 RSP 레지스터를 RBP에 저장
+    push rbp        ; ?��?��?�� RBP ?���??��?���? ????��?���? RSP ?���??��?���? RBP?�� ????��
     mov rbp, rsp
     
-    ; Current Context가 NULL이면 콘텍스트를 저장할 필요 없음
-    pushfq          ; 아래의 cmp의 결과로 RFLAGS 레지스터가 변하지 않도록 스택에 저장
-    cmp rdi, 0      ; Current Context가 NULL이면 콘텍스트 복원으로 바로 이동
+    ; Current Context�? NULL?���? 콘텍?��?���? ????��?�� ?��?�� ?��?��
+    pushfq          ; ?��?��?�� cmp?�� 결과�? RFLAGS ?���??��?���? �??���? ?��?���? ?��?��?�� ????��
+    cmp rdi, 0      ; Current Context�? NULL?���? 콘텍?��?�� 복원?���? 바로 ?��?��
     je .LoadContext 
-    popfq           ; 스택에 저장한 RFLAGS 레지스터를 복원
+    popfq           ; ?��?��?�� ????��?�� RFLAGS ?���??��?���? 복원
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ; 현재 태스크의 콘텍스트를 저장
+    ; ?��?�� ?��?��?��?�� 콘텍?��?���? ????��
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    push rax            ; 콘텍스트 영역의 오프셋으로 사용할 RAX 레지스터를 스택에 저장
+    push rax            ; 콘텍?��?�� ?��?��?�� ?��?��?��?���? ?��?��?�� RAX ?���??��?���? ?��?��?�� ????��
     
-    ; SS, RSP, RFLAGS, CS, RIP 레지스터 순서대로 삽입
-    mov ax, ss                          ; SS 레지스터 저장
+    ; SS, RSP, RFLAGS, CS, RIP ?���??��?�� ?��?��???�? ?��?��
+    mov ax, ss                          ; SS ?���??��?�� ????��
     mov qword[ rdi + ( 23 * 8 ) ], rax
 
-    mov rax, rbp                        ; RBP에 저장된 RSP 레지스터 저장
-    add rax, 16                         ; RSP 레지스터는 push rbp와 Return Address를
-    mov qword[ rdi + ( 22 * 8 ) ], rax  ; 제외한 값으로 저장
+    mov rax, rbp                        ; RBP?�� ????��?�� RSP ?���??��?�� ????��
+    add rax, 16                         ; RSP ?���??��?��?�� push rbp??? Return Address�?
+    mov qword[ rdi + ( 22 * 8 ) ], rax  ; ?��?��?�� 값으�? ????��
     
-    pushfq                              ; RFLAGS 레지스터 저장
+    pushfq                              ; RFLAGS ?���??��?�� ????��
     pop rax
     mov qword[ rdi + ( 21 * 8 ) ], rax
 
-    mov ax, cs                          ; CS 레지스터 저장
+    mov ax, cs                          ; CS ?���??��?�� ????��
     mov qword[ rdi + ( 20 * 8 ) ], rax
     
-    mov rax, qword[ rbp + 8 ]           ; RIP 레지스터를 Return Address로 설정하여 
-    mov qword[ rdi + ( 19 * 8 ) ], rax  ; 다음 콘텍스트 복원 시에 이 함수를 호출한 
-                                        ; 위치로 이동하게 함
+    mov rax, qword[ rbp + 8 ]           ; RIP ?���??��?���? Return Address�? ?��?��?��?�� 
+    mov qword[ rdi + ( 19 * 8 ) ], rax  ; ?��?�� 콘텍?��?�� 복원 ?��?�� ?�� ?��?���? ?��출한 
+                                        ; ?��치로 ?��?��?���? ?��
     
-    ; 저장한 레지스터를 복구한 후 인터럽트가 발생했을 때처럼 나머지 콘텍스트를 모두 저장
+    ; ????��?�� ?���??��?���? 복구?�� ?�� ?��?��?��?���? 발생?��?�� ?��처럼 ?��머�?? 콘텍?��?���? 모두 ????��
     pop rax
     pop rbp
     
-    ; 가장 끝부분에 SS, RSP, RFLAGS, CS, RIP 레지스터를 저장했으므로, 이전 영역에
-    ; push 명령어로 콘텍스트를 저장하기 위해 스택을 변경
+    ; �??�� ?���?분에 SS, RSP, RFLAGS, CS, RIP ?���??��?���? ????��?��?���?�?, ?��?�� ?��?��?��
+    ; push 명령?���? 콘텍?��?���? ????��?���? ?��?�� ?��?��?�� �?�?
     add rdi, ( 19 * 8 )
     mov rsp, rdi
     sub rdi, ( 19 * 8 )
     
-    ; 나머지 레지스터를 모두 Context 자료구조에 저장
+    ; ?��머�?? ?���??��?���? 모두 Context ?��료구조에 ????��
     KSAVECONTEXT
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ; 다음 태스크의 콘텍스트 복원
+    ; ?��?�� ?��?��?��?�� 콘텍?��?�� 복원
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .LoadContext:
     mov rsp, rsi
     
-    ; Context 자료구조에서 레지스터를 복원
+    ; Context ?��료구조에?�� ?���??��?���? 복원
     KLOADCONTEXT
     iretq
 
