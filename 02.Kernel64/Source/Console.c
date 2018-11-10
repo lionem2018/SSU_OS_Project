@@ -124,16 +124,16 @@ int kConsolePrintString( const char* pcBuffer )
         }
         
         // 출력할 위치가 화면의 최댓값(80 * 25)을 벗어났으면 스크롤 처리
-        if( iPrintOffset >= ( CONSOLE_HEIGHT * CONSOLE_WIDTH - 3 ) )
+        if( iPrintOffset >= ( CONSOLE_HEIGHT -3 * CONSOLE_WIDTH ) )
         {
             // 가장 윗줄을 제외한 나머지를 한줄 위로 복사
             kMemCpy( CONSOLE_VIDEOMEMORYADDRESS, 
-                     CONSOLE_VIDEOMEMORYADDRESS + (CONSOLE_WIDTH - 3) * sizeof( CHARACTER ),
-                     ( CONSOLE_HEIGHT - 1 ) * (CONSOLE_WIDTH -3)* sizeof( CHARACTER ) );
+                     CONSOLE_VIDEOMEMORYADDRESS + (CONSOLE_WIDTH) * sizeof( CHARACTER ),
+                     ( CONSOLE_HEIGHT - 4 ) * (CONSOLE_WIDTH)* sizeof( CHARACTER ) );
 
             // 가장 마지막 라인은 공백으로 채움
-            for( j = ( CONSOLE_HEIGHT - 1 ) * ( CONSOLE_WIDTH -3 ) ; 
-                 j < ( CONSOLE_HEIGHT * (CONSOLE_WIDTH - 3) ) ; j++ )
+            for( j = ( CONSOLE_HEIGHT - 4 ) * ( CONSOLE_WIDTH) ; 
+                 j < ( (CONSOLE_HEIGHT - 3) * CONSOLE_WIDTH ) ; j++ )
             {
                 // 공백 출력
                 pstScreen[ j ].bCharactor = ' ';
