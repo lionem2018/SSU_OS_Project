@@ -49,6 +49,8 @@ void kStartConsoleShell( void )
     BYTE bLastSecond, bLastMinute, bCurrentSecond, bCurrentMinute, bHour;
     char cline[81] = {'=',};
 
+    bLastSecond = bLastMinute = bCurrentSecond = bCurrentMinute = bHour = 0;
+       
     kMemSet(cline , '=' , 80);
     kPrintStringXY( 0, 23, cline);
     kPrintStringXY( 0, 24, CONSOLESHELL_RUNNINGTIME );
