@@ -581,7 +581,7 @@ void kPrintTime(BYTE bLastMinute, BYTE bLastSecond, BYTE bCurrentMinute, BYTE bC
     }
     else
         kIToA(bRunningSecond, cRunningSecond, 10);
-        
+
     kPrintStringXY( 13, 24, cRunningMinute);
     kPrintStringXY( 15, 24, ":");
     kPrintStringXY( 16, 24, cRunningSecond);
@@ -600,7 +600,7 @@ void kPrintProcessingCommandTime( const char* pcParameterBuffer )
     kWaitUsingDirectPIT( MSTOCOUNT( 1 ) );
     qwTotalTSC += kReadTSC() - qwLastTSC;
     
-    kPrintf( "%d per 10ns\n", qwTotalTSC / 100000 );
+    //kPrintf( "%d per 10ns\n", qwTotalTSC / 100000 );
     
     lastTime = kReadTSC();
     kEnableInterrupt();  
@@ -611,12 +611,12 @@ void kPrintProcessingCommandTime( const char* pcParameterBuffer )
     currentTime = kReadTSC();
     kEnableInterrupt(); 
 
-    kPrintf( "lastTime(hex): %q\n", lastTime );
-    kPrintf( "currentTime(hex): %q\n", currentTime );
+    //kPrintf( "lastTime(hex): %q\n", lastTime );
+    //kPrintf( "currentTime(hex): %q\n", currentTime );
     resultTime = (currentTime - lastTime);
     
-    kPrintf( "currentTime - lastTime(hex): %q\n", resultTime );
-    kPrintf( "Running Time1(hex): %q\n", (resultTime * 10) / (qwTotalTSC / 100000) );
+    //kPrintf( "currentTime - lastTime(hex): %q\n", resultTime );
+   // kPrintf( "Running Time1(hex): %q\n", (resultTime * 10) / (qwTotalTSC / 100000) );
 
     resultTime = (resultTime * 10) / (qwTotalTSC / 100000);
     QWORD minute = resultTime / 60000000000;
