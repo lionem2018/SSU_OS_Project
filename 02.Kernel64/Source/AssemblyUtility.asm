@@ -92,7 +92,7 @@ getFaultAddress:
 ;   PARAM: 없음    
 kReadTSC:
     push rdx                ; RDX 레지스터를 스택에 저장
-    
+    cpuid
     rdtsc                   ; 타임 스탬프 카운터를 읽어서 RDX:RAX에 저장
     
     shl rdx, 32             ; RDX 레지스터에 있는 상위 32비트 TSC 값과 RAX 레지스터에

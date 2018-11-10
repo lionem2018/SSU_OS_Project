@@ -29,6 +29,7 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         { "cpuspeed", "Measure Processor Speed", kMeasureProcessorSpeed },
         { "date", "Show Date And Time", kShowDateAndTime },
         { "createtask", "Create Task", kCreateTestTask },
+        { "time", "Print time during processing a command", kPrintProcessingCommandTime }
 };                                     
 
 //==============================================================================
@@ -45,6 +46,7 @@ void kStartConsoleShell( void )
     int iCommandBufferIndex = 0;
     BYTE bKey;
     int iCursorX, iCursorY;
+    BYTE bLastSecond, bLastMinute, bCurrentSecond, bCurrentMinute, bHour;
     char cline[81] = {'=',};
 
     kMemSet(cline , '=' , 80);
@@ -52,7 +54,7 @@ void kStartConsoleShell( void )
     kPrintStringXY( 0, 24, CONSOLESHELL_RUNNINGTIME );
     kPrintStringXY( 58, 24,CONSOLESHELL_CURRENTTIME);
     kPrintf( CONSOLESHELL_PROMPTMESSAGE );
-
+    kPrintTime(0, 0, 0, 0);
     while( 1 )
     {
         
@@ -81,7 +83,7 @@ void kStartConsoleShell( void )
                 // Ŀ�ǵ� ���ۿ� �ִ� ����� ����
                 vcCommandBuffer[ iCommandBufferIndex ] = '\0';
                 kExecuteCommand( vcCommandBuffer );
-
+                kReadRTCTime( &bHour, &bCurrentMinute, &bCurrentSecond );
                 kSetCommandHistory(vcCommandHistoryList, vcCommandBuffer, &iHistoryCount);
                 
                 iHistoryIndex = iHistoryCount;
@@ -90,6 +92,7 @@ void kStartConsoleShell( void )
             // ������Ʈ ��� �� Ŀ�ǵ� ���� �ʱ�ȭ
             kPrintf( "%s", CONSOLESHELL_PROMPTMESSAGE ); 
             kPrintStringXY( 0, 23, cline);
+            kPrintTime(bLastMinute, bLastSecond, bCurrentMinute, bCurrentSecond);
             kPrintStringXY( 0, 24, CONSOLESHELL_RUNNINGTIME );
             kPrintStringXY( 58, 24,CONSOLESHELL_CURRENTTIME);         
             kMemSet( vcCommandBuffer, '\0', CONSOLESHELL_MAXCOMMANDBUFFERCOUNT );
@@ -536,4 +539,94 @@ void kCreateTestTask( const char* pcParameterBuffer )
         // 위에서 키가 입력되면 태스크를 전환
         kSwitchContext( &( gs_vstTask[ 0 ].stContext ), &( gs_vstTask[ 1 ].stContext ) );
     }
+}
+
+void kPrintTime(BYTE bLastMinute, BYTE bLastSecond, BYTE bCurrentMinute, BYTE bCurrentSecond){
+    char cline[81] = {'=',};
+    char cSecond[3] = {'\0'}, cMinute[3] = {'\0'}, cHour[3] = {'\0'};
+    BYTE bSecond, bMinute, bHour;
+    /////////////////////////
+    char cRunningMinute[3] = {'\0'}, cRunningSecond[3] = {'\0'};
+    BYTE bRunningMinute, bRunningSecond;
+
+    if(bLastMinute > bCurrentMinute)
+        bRunningMinute = 60 + bCurrentMinute - bLastMinute;
+    else
+        bRunningMinute = bCurrentMinute - bLastMinute;
+
+    if(bLastSecond > bCurrentSecond)
+    {
+        bRunningMinute--;
+        bRunningSecond = 60 + bCurrentSecond - bLastSecond;
+
+        if(bRunningSecond > 60)
+            bRunningSecond -= 60;
+    }
+    else
+        bRunningSecond = bCurrentSecond - bLastSecond;
+    /////////////////////////
+/*
+    kMemSet(cline , '=' , 80);
+    kReadRTCTime( &bHour, &bMinute, &bSecond );
+    kIToA(bSecond,cSecond, 10);
+    kIToA(bMinute,cMinute, 10);
+    kIToA(bHour,cHour, 10);*/
+    ////////////////////////////////
+    kIToA(bRunningMinute, cRunningMinute, 10);
+    kIToA(bRunningSecond, cRunningSecond, 10);
+    kPrintStringXY( 0, 23, cline);
+    kPrintStringXY( 0, 24, CONSOLESHELL_RUNNINGTIME );
+    kPrintStringXY( 13, 24, cRunningMinute);
+    kPrintStringXY( 15, 24, ":");
+    kPrintStringXY( 16, 24, cRunningSecond);
+    ////////////////////////////////////
+    /*
+    kPrintStringXY( 57, 24,CONSOLESHELL_CURRENTTIME);
+    kPrintStringXY( 71, 24, cHour);
+    kPrintStringXY( 73, 24, ":");
+    kPrintStringXY( 74, 24, cMinute);
+    kPrintStringXY( 76, 24, ":");
+    kPrintStringXY( 77, 24, cSecond);*/
+}
+
+void kPrintProcessingCommandTime( const char* pcParameterBuffer )
+{
+    QWORD lastTime, currentTime, resultTime;
+    QWORD qwLastTSC, qwTotalTSC = 0; 
+
+    kDisableInterrupt();
+
+    qwLastTSC = kReadTSC();
+    kWaitUsingDirectPIT( MSTOCOUNT( 1 ) );
+    qwTotalTSC += kReadTSC() - qwLastTSC;
+    
+    kPrintf( "%d per 10ns\n", qwTotalTSC / 100000 );
+    
+    lastTime = kReadTSC();
+    kEnableInterrupt();  
+
+    kExecuteCommand(pcParameterBuffer); 
+
+    kDisableInterrupt(); 
+    currentTime = kReadTSC();
+    kEnableInterrupt(); 
+
+    kPrintf( "lastTime(hex): %q\n", lastTime );
+    kPrintf( "currentTime(hex): %q\n", currentTime );
+    resultTime = (currentTime - lastTime);
+    
+    kPrintf( "currentTime - lastTime(hex): %q\n", resultTime );
+    kPrintf( "Running Time1(hex): %q\n", (resultTime * 10) / (qwTotalTSC / 100000) );
+
+    resultTime = (resultTime * 10) / (qwTotalTSC / 100000);
+    QWORD minute = resultTime / 60000000000;
+    QWORD second = (resultTime % 60000000000) / 1000000000;
+    QWORD msecond = (resultTime % 1000000000) / 1000000;
+    QWORD usecond = (resultTime % 1000000) / 1000;
+    QWORD nsecond = resultTime % 1000;
+
+    kPrintf("real %d:%d:%d:%d:%d\n", minute, second, msecond, usecond, nsecond);
+
+    kInitializePIT( MSTOCOUNT( 1 ), TRUE ); 
+
 }
