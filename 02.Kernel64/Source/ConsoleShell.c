@@ -82,6 +82,7 @@ void kStartConsoleShell( void )
             {
                 // Ŀ�ǵ� ���ۿ� �ִ� ����� ����
                 vcCommandBuffer[ iCommandBufferIndex ] = '\0';
+                kReadRTCTime( &bHour, &bLastMinute, &bLastSecond );
                 kExecuteCommand( vcCommandBuffer );
                 kReadRTCTime( &bHour, &bCurrentMinute, &bCurrentSecond );
                 kSetCommandHistory(vcCommandHistoryList, vcCommandBuffer, &iHistoryCount);
@@ -565,21 +566,22 @@ void kPrintTime(BYTE bLastMinute, BYTE bLastSecond, BYTE bCurrentMinute, BYTE bC
     else
         bRunningSecond = bCurrentSecond - bLastSecond;
     
+    /*
     if(bRunningMinute < 10){
         kIToA(bRunningMinute, cRunningMinute, 10);
         kMemCpy(cRunningMinute +1, cRunningMinute , 1);
         cRunningMinute[0] = '0';
         
-    }
-    else
+    }*/
+    //else
         kIToA(bRunningMinute, cRunningMinute, 10);
 
-    if(bRunningSecond < 10){
-        kIToA(bRunningSecond, cRunningSecond, 10);
-        kMemCpy(cRunningSecond + 1, cRunningSecond, 1);
-        cRunningSecond[0] = '0';
-    }
-    else
+    //if(bRunningSecond < 10){
+    //    kIToA(bRunningSecond, cRunningSecond, 10);
+     //   kMemCpy(cRunningSecond + 1, cRunningSecond, 1);
+     //   cRunningSecond[0] = '0';
+   // }
+    //else
         kIToA(bRunningSecond, cRunningSecond, 10);
 
     kPrintStringXY( 13, 24, cRunningMinute);
