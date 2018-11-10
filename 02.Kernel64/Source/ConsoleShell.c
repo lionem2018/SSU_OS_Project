@@ -542,7 +542,7 @@ void kCreateTestTask( const char* pcParameterBuffer )
 }
 
 void kPrintTime(BYTE bLastMinute, BYTE bLastSecond, BYTE bCurrentMinute, BYTE bCurrentSecond){
-    char cline[81] = {'=',};
+
     char cSecond[3] = {'\0'}, cMinute[3] = {'\0'}, cHour[3] = {'\0'};
     BYTE bSecond, bMinute, bHour;
     /////////////////////////
@@ -564,29 +564,29 @@ void kPrintTime(BYTE bLastMinute, BYTE bLastSecond, BYTE bCurrentMinute, BYTE bC
     }
     else
         bRunningSecond = bCurrentSecond - bLastSecond;
-    /////////////////////////
-/*
-    kMemSet(cline , '=' , 80);
-    kReadRTCTime( &bHour, &bMinute, &bSecond );
-    kIToA(bSecond,cSecond, 10);
-    kIToA(bMinute,cMinute, 10);
-    kIToA(bHour,cHour, 10);*/
-    ////////////////////////////////
-    kIToA(bRunningMinute, cRunningMinute, 10);
-    kIToA(bRunningSecond, cRunningSecond, 10);
-    kPrintStringXY( 0, 23, cline);
-    kPrintStringXY( 0, 24, CONSOLESHELL_RUNNINGTIME );
+    
+    if(bRunningMinute < 10){
+        kIToA(bRunningMinute, cRunningMinute, 10);
+        kMemCpy(cRunningMinute +1, cRunningMinute , 1);
+        cRunningMinute[0] = '0';
+        
+    }
+    else
+        kIToA(bRunningMinute, cRunningMinute, 10);
+
+    if(bRunningSecond < 10){
+        kIToA(bRunningSecond, cRunningSecond, 10);
+        kMemCpy(cRunningSecond + 1, cRunningSecond, 1);
+        cRunningSecond[0] = '0';
+    }
+    else
+        kIToA(bRunningSecond, cRunningSecond, 10);
+        
     kPrintStringXY( 13, 24, cRunningMinute);
     kPrintStringXY( 15, 24, ":");
     kPrintStringXY( 16, 24, cRunningSecond);
-    ////////////////////////////////////
-    /*
-    kPrintStringXY( 57, 24,CONSOLESHELL_CURRENTTIME);
-    kPrintStringXY( 71, 24, cHour);
-    kPrintStringXY( 73, 24, ":");
-    kPrintStringXY( 74, 24, cMinute);
-    kPrintStringXY( 76, 24, ":");
-    kPrintStringXY( 77, 24, cSecond);*/
+    
+   
 }
 
 void kPrintProcessingCommandTime( const char* pcParameterBuffer )
