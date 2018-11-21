@@ -24,7 +24,7 @@
 typedef struct kListLinkStruct
 {
     // 다음 데이터의 어드레스와 데이터를 구분하기 위한 ID
-    void* pvNext;
+    void* pvNext;  //LISTLINK
     QWORD qwID;
 } LISTLINK;
 
@@ -49,7 +49,7 @@ typedef struct kListManagerStruct
     int iItemCount;
 
     // 리스트의 첫 번째와 마지막 데이터의 어드레스
-    void* pvHeader;
+    void* pvHeader; //LISTLINK
     void* pvTail;
 } LIST;
 

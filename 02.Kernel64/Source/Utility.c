@@ -488,3 +488,14 @@ void kSleep( QWORD qwMillisecond )
         kSchedule();
     }
 }
+
+volatile QWORD gs_qwRandomValue = 0;
+
+void srand(QWORD qwSeed){
+    gs_qwRandomValue = qwSeed;
+}
+
+QWORD rand(void){
+    gs_qwRandomValue = (gs_qwRandomValue * 412153 + 5571031) >> 16;
+    return gs_qwRandomValue;
+}

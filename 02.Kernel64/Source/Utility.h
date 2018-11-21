@@ -36,11 +36,15 @@ int kVSPrintf( char* pcBuffer, const char* pcFormatString, va_list ap );
 QWORD kGetTickCount( void );
 void kSleep( QWORD qwMillisecond );
 
+void srand(QWORD qwSeed);
+QWORD rand(void);
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 //  ±‚≈∏
 //
 ////////////////////////////////////////////////////////////////////////////////
 extern volatile QWORD g_qwTickCount;
+extern volatile QWORD gs_qwRandomValue;
 
 #endif /*__UTILITY_H__*/

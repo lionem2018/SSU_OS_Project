@@ -136,6 +136,9 @@ typedef struct kTaskControlBlockStruct
     // 스택의 어드레스와 크기
     void* pvStackAddress;
     QWORD qwStackSize;
+
+    //ticket number
+    QWORD ticket;
 } TCB;
 
 // TCB 풀의 상태를 관리하는 자료구조
@@ -160,13 +163,16 @@ typedef struct kSchedulerStruct
     int iProcessorTime;
     
     // 실행할 태스크가 준비중인 리스트, 태스크의 우선 순위에 따라 구분
-    LIST vstReadyList[ TASK_MAXREADYLISTCOUNT ];
+    // LIST vstReadyList[ TASK_MAXREADYLISTCOUNT ];
+    LIST vstReadyList;
 
     // 종료할 태스크가 대기중인 리스트
     LIST stWaitList;
     
     // 각 우선 순위별로 태스크를 실행한 횟수를 저장하는 자료구조
-    int viExecuteCount[ TASK_MAXREADYLISTCOUNT ];
+    // int viExecuteCount[ TASK_MAXREADYLISTCOUNT ];
+    //one vstReadyList, viExecuteCount
+    int viExecuteCount;
     
     // 프로세서 부하를 계산하기 위한 자료구조
     QWORD qwProcessorLoad;
@@ -215,6 +221,7 @@ TCB* kGetTCBInTCBPool( int iOffset );
 BOOL kIsTaskExist( QWORD qwID );
 QWORD kGetProcessorLoad( void );
 static TCB* kGetProcessByThread( TCB* pstThread );
+static QWORD kAllTicketNum();
 
 //==============================================================================
 //  유휴 태스크 관련

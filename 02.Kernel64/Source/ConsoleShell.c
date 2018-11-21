@@ -14,6 +14,7 @@
 #include "RTC.h"
 #include "AssemblyUtility.h"
 #include "Synchronization.h"
+#include "Utility.h"
 
 // Ä¿ï¿½Çµï¿½ ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½
 SHELLCOMMANDENTRY gs_vstCommandTable[] =
@@ -1050,17 +1051,19 @@ static void kTestThread( const char* pcParameterBuffer )
     }
 }
 
-// ³­¼ö¸¦ ¹ß»ý½ÃÅ°±â À§ÇÑ º¯¼ö
-static volatile QWORD gs_qwRandomValue = 0;
+// // ³­¼ö¸¦ ¹ß»ý½ÃÅ°±â À§ÇÑ º¯¼ö
+// static volatile QWORD gs_qwRandomValue = 0;
 
-/**
- *  ÀÓÀÇÀÇ ³­¼ö¸¦ ¹ÝÈ¯
- */
-QWORD kRandom( void )
-{
-    gs_qwRandomValue = ( gs_qwRandomValue * 412153 + 5571031 ) >> 16;
-    return gs_qwRandomValue;
-}
+// /**
+//  *  ÀÓÀÇÀÇ ³­¼ö¸¦ ¹ÝÈ¯
+//  */
+// QWORD kRandom( void )
+// {
+//     gs_qwRandomValue = ( gs_qwRandomValue * 412153 + 5571031 ) >> 16;
+//     return gs_qwRandomValue;
+// }
+
+
 
 /**
  *  Ã¶ÀÚ¸¦ Èê·¯³»¸®°Ô ÇÏ´Â ½º·¹µå
@@ -1071,14 +1074,16 @@ static void kDropCharactorThread( void )
     int i;
     char vcText[ 2 ] = { 0, };
 
-    iX = kRandom() % CONSOLE_WIDTH;
+    srand(kGetTickCount());
+
+    iX = rand() % CONSOLE_WIDTH;
     
     while( 1 )
     {
         // Àá½Ã ´ë±âÇÔ
-        kSleep( kRandom() % 20 );
+        kSleep( rand() % 20 );
         
-        if( ( kRandom() % 20 ) < 16 )
+        if( ( rand() % 20 ) < 16 )
         {
             vcText[ 0 ] = ' ';
             for( i = 0 ; i < CONSOLE_HEIGHT - 1 ; i++ )
@@ -1091,7 +1096,7 @@ static void kDropCharactorThread( void )
         {
             for( i = 0 ; i < CONSOLE_HEIGHT - 1 ; i++ )
             {
-                vcText[ 0 ] = i + kRandom();
+                vcText[ 0 ] = i + rand();
                 kPrintStringXY( iX, i, vcText );
                 kSleep( 50 );
             }
@@ -1114,7 +1119,7 @@ static void kMatrixProcess( void )
             break;
         }
         
-        kSleep( kRandom() % 5 + 5 );
+        kSleep( rand() % 5 + 5 );
     }
     
     kPrintf( "%d Thread is created\n", i );
