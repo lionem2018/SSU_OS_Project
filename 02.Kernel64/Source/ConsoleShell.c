@@ -40,6 +40,7 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         { "testmutex", "Test Mutex Function", kTestMutex },
         { "testthread", "Test Thread And Process Function", kTestThread },
         { "showmatrix", "Show Matrix Screen", kShowMatrix },
+        { "showfairness", "Show fairness rate of two task", kShowFairness}
 };                                     
 
 //==============================================================================
@@ -732,7 +733,7 @@ static void kTestTask2( void )
     iOffset = CONSOLE_WIDTH * CONSOLE_HEIGHT - 
         ( iOffset % ( CONSOLE_WIDTH * CONSOLE_HEIGHT ) );
 
-    while( 1 )
+    while( i<1000000 )     //there is end
     {
         // 회전하는 바람개비를 표시
         pstScreen[ iOffset ].bCharactor = vcData[ i % 4 ];
@@ -862,6 +863,7 @@ static void kShowTaskList( const char* pcParameterBuffer )
                      pstTCB->qwFlags, kGetListCount( &( pstTCB->stChildThreadList ) ) );
             kPrintf( "    Parent PID[0x%Q], Memory Address[0x%Q], Size[0x%Q]\n",
                     pstTCB->qwParentProcessID, pstTCB->pvMemoryAddress, pstTCB->qwMemorySize );
+            kPrintf( "    Ticket[%d]\n",pstTCB->ticket);
         }
     }
 }
@@ -946,6 +948,7 @@ static void kKillTask( const char* pcParameterBuffer )
 static void kCPULoad( const char* pcParameterBuffer )
 {
     kPrintf( "Processor Load : %d%%\n", kGetProcessorLoad() );
+    kPrintf( "Console Load : %d%%\n", kGetConsoleProcessorLoad() );
 }
     
 // 뮤텍스 테스트용 뮤텍스와 변수
@@ -1051,19 +1054,6 @@ static void kTestThread( const char* pcParameterBuffer )
     }
 }
 
-// // 난수를 발생시키기 위한 변수
-// static volatile QWORD gs_qwRandomValue = 0;
-
-// /**
-//  *  임의의 난수를 반환
-//  */
-// QWORD kRandom( void )
-// {
-//     gs_qwRandomValue = ( gs_qwRandomValue * 412153 + 5571031 ) >> 16;
-//     return gs_qwRandomValue;
-// }
-
-
 
 /**
  *  철자를 흘러내리게 하는 스레드
@@ -1151,4 +1141,16 @@ static void kShowMatrix( const char* pcParameterBuffer )
     {
         kPrintf( "Matrix Process Create Fail\n" );
     }
+}
+
+void kShowFairness(){
+    int i=0;
+    for( i = 0 ; i < 2 ; i++ )
+        {    
+             if( kCreateFairnessTask( TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, ( QWORD ) kTestTask2,i)== NULL )
+            {
+                break;
+            }
+        }
+    kPrintf( "Task2 %d Created\n", i );
 }

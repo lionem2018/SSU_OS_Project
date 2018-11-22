@@ -14,6 +14,13 @@
 static SCHEDULER gs_stScheduler;
 static TCBPOOLMANAGER gs_stTCBPoolManager;
 
+// 프로세서 사용량 계산을 위해 기준 정보를 저장
+static QWORD qwLastSpendTickInConsoleTask;
+static QWORD qwLastConsoleMeasureTickCount;
+
+static QWORD qwStartClock[2];
+static TCB* testTCB[2];
+
 //==============================================================================
 //  태스크 풀과 태스크 관련
 //==============================================================================
@@ -91,6 +98,14 @@ static void kFreeTCB( QWORD qwID )
     gs_stTCBPoolManager.pstStartAddress[ i ].stLink.qwID = i;
     
     gs_stTCBPoolManager.iUseCount--;
+}
+
+TCB* kCreateFairnessTask(QWORD qwFlags, void* pvMemoryAddress, QWORD qwMemorySize, 
+                  QWORD qwEntryPointAddress,QWORD testnum)
+{
+    testTCB[testnum]=kCreateTask( TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, ( QWORD ) qwEntryPointAddress );
+    qwStartClock[testnum] = kGetTickCount();
+    return testTCB[testnum];
 }
 
 /**
@@ -227,13 +242,6 @@ void kInitializeScheduler( void )
     // 태스크 풀 초기화
     kInitializeTCBPool();
 
-    // 준비 리스트와 우선 순위별 실행 횟수를 초기화하고 대기 리스트도 초기화
-    // for( i = 0 ; i < TASK_MAXREADYLISTCOUNT ; i++ )
-    // {
-    //     kInitializeList( &( gs_stScheduler.vstReadyList) );
-    //     gs_stScheduler.viExecuteCount[ i ] = 0;
-    // }  
-
     //--one list, one vstReadyList
     kInitializeList( &( gs_stScheduler.vstReadyList) );
     gs_stScheduler.viExecuteCount = 0;
@@ -254,6 +262,12 @@ void kInitializeScheduler( void )
     // 프로세서 사용률을 계산하는데 사용하는 자료구조 초기화
     gs_stScheduler.qwSpendProcessorTimeInIdleTask = 0;
     gs_stScheduler.qwProcessorLoad = 0;
+
+    gs_stScheduler.qwConsoleProcessorLoad = 0;
+    gs_stScheduler.qwSpendProcessorTimeInConsoleTask = 0;
+    // 프로세서 사용량 계산을 위해 기준 정보를 저장
+    qwLastSpendTickInConsoleTask = gs_stScheduler.qwSpendProcessorTimeInConsoleTask;
+    qwLastConsoleMeasureTickCount = kGetTickCount();
 }
 
 /**
@@ -296,55 +310,12 @@ TCB* kGetRunningTask( void )
  */
 static TCB* kGetNextTaskToRun( void )
 {
-    // LISTLINK* pstLink = (LISTLINK*) gs_stScheduler.vstReadyList.pvHeader;
-    // TCB* pstTarget = (TCB*)pstLink;
-    // int iTaskCount, i, j;
-    
-    // 큐에 태스크가 있으나 모든 큐의 태스크가 1회씩 실행된 경우, 모든 큐가 프로세서를
-    // 양보하여 태스크를 선택하지 못할 수 있으니 NULL일 경우 한번 더 수행
-    // for( j = 0 ; j < 2 ; j++ )
-    // {
-    //     // 높은 우선 순위에서 낮은 우선 순위까지 리스트를 확인하여 스케줄링할 태스크를 선택
-    //     for( i = 0 ; i < TASK_MAXREADYLISTCOUNT ; i++ )
-    //     {
-    //         iTaskCount = kGetListCount( &( gs_stScheduler.vstReadyList [i]) );
-            
-    //         // 만약 실행한 횟수보다 리스트의 태스크 수가 더 많으면 현재 우선 순위의
-    //         // 태스크를 실행함
-    //         if( gs_stScheduler.viExecuteCount[ i ] < iTaskCount )
-    //         {
-    //             pstTarget = ( TCB* ) kRemoveListFromHeader( 
-    //                                     &( gs_stScheduler.vstReadyList[ i ] ) );
-    //             gs_stScheduler.viExecuteCount[ i ]++;
-    //             break;            
-    //         }
-    //         // 만약 실행한 횟수가 더 많으면 실행 횟수를 초기화하고 다음 우선 순위로 양보함
-    //         else
-    //         {
-    //             gs_stScheduler.viExecuteCount[ i ] = 0;
-    //         }
-    //     }
-        
-    //     // 만약 수행할 태스크를 찾았으면 종료
-    //     if( pstTarget != NULL )
-    //     {
-    //         break;
-    //     }
-    // }  
-
     TCB* pstTCB;
 
     srand(kGetTickCount());
 
     int counter = 0;
     int winner = rand()%kAllTicketNum();
-
-    // while(pstTarget){
-    //     pstTarget = (TCB*)pstLink;
-    //     counter = counter + pstTarget->ticket;
-    //     if(counter>winner) break;
-    //     pstLink = pstLink->pvNext;
-    // }
 
     for( int i = 0 ; i < TASK_MAXCOUNT ; i++ )
     {
@@ -353,11 +324,11 @@ static TCB* kGetNextTaskToRun( void )
         if( ( pstTCB->stLink.qwID >> 32 ) != 0 )
         {
             counter = counter + pstTCB->ticket;
-            if(counter > winner) break;
+            if(counter > winner) {
+                break;
+            }
         }
     }
-            
-
     return pstTCB;
 }
 
@@ -430,8 +401,8 @@ static TCB* kRemoveTaskFromReadyList( QWORD qwTaskID )
         return NULL;
     }    
 
-    pstTarget = kRemoveList( &( gs_stScheduler.vstReadyList), 
-                     qwTaskID );
+    pstTarget = kRemoveList( &( gs_stScheduler.vstReadyList), qwTaskID );
+
     return pstTarget;
 }
 
@@ -459,7 +430,7 @@ BOOL kChangePriority( QWORD qwTaskID, BYTE bPriority )
     if( pstTarget->stLink.qwID == qwTaskID )
     {
         SETPRIORITY( pstTarget->qwFlags, bPriority );
-        pstTarget->ticket = 20*(bPriority+1);
+        pstTarget->ticket = 20*(5-bPriority);
     }
     // 실행중인 태스크가 아니면 준비 리스트에서 찾아서 해당 우선 순위의 리스트로 이동
     else
@@ -474,14 +445,14 @@ BOOL kChangePriority( QWORD qwTaskID, BYTE bPriority )
             {
                 // 우선 순위를 설정
                 SETPRIORITY( pstTarget->qwFlags, bPriority );
-                pstTarget->ticket = 20*(bPriority+1);
+                pstTarget->ticket = 20*(5-bPriority);
             }
         }
         else
         {
             // 우선 순위를 설정하고 준비 리스트에 다시 삽입
             SETPRIORITY( pstTarget->qwFlags, bPriority );
-            pstTarget->ticket = 20* (bPriority+1);
+            pstTarget->ticket = 20* (5-bPriority);
             kAddTaskToReadyList( pstTarget );
         }
     }
@@ -529,6 +500,12 @@ void kSchedule( void )
         gs_stScheduler.qwSpendProcessorTimeInIdleTask += 
             TASK_PROCESSORTIME - gs_stScheduler.iProcessorTime;
     }
+
+    if( ( pstRunningTask->stLink.qwID & CONSOLE_ID ) == CONSOLE_ID )
+    {
+        gs_stScheduler.qwSpendProcessorTimeInConsoleTask += 
+            TASK_PROCESSORTIME - gs_stScheduler.iProcessorTime;
+    }
     
     // 태스크 종료 플래그가 설정된 경우 콘텍스트를 저장할 필요가 없으므로, 대기 리스트에
     // 삽입하고 콘텍스트 전환
@@ -539,7 +516,7 @@ void kSchedule( void )
     }
     else
     {
-        // kAddTaskToReadyList( pstRunningTask );
+        //kAddTaskToReadyList( pstRunningTask );   ///////////////////////////////////////////////////??
         kSwitchContext( &( pstRunningTask->stContext ), &( pstNextTask->stContext ) );
     }
 
@@ -586,7 +563,48 @@ BOOL kScheduleInInterrupt( void )
     if( ( pstRunningTask->qwFlags & TASK_FLAGS_IDLE ) == TASK_FLAGS_IDLE )
     {
         gs_stScheduler.qwSpendProcessorTimeInIdleTask += TASK_PROCESSORTIME;
-    }    
+    }  
+
+    if( ( pstRunningTask->stLink.qwID & CONSOLE_ID ) == CONSOLE_ID )
+    {
+        gs_stScheduler.qwSpendProcessorTimeInConsoleTask += TASK_PROCESSORTIME;
+
+        TCB* pstTask, * pstChildThread, * pstProcess;
+                QWORD qwCurrentMeasureTickCount, qwCurrentSpendTickInConsoleTask;
+                BOOL bPreviousFlag;
+                int i, iCount;
+                QWORD qwTaskID;
+                void* pstThreadLink;
+    
+                // while( 1 )
+                // {
+                    // 현재 상태를 저장
+                    qwCurrentMeasureTickCount = kGetTickCount();
+                    qwCurrentSpendTickInConsoleTask = gs_stScheduler.qwSpendProcessorTimeInConsoleTask;
+
+                    if(qwCurrentMeasureTickCount-qwLastConsoleMeasureTickCount>500){
+                    //kPrintf("console: %d %d, %d\n",qwCurrentMeasureTickCount,qwLastConsoleMeasureTickCount,qwCurrentMeasureTickCount-qwLastConsoleMeasureTickCount);
+        
+                    // 프로세서 사용량을 계산
+                    // 100 - ( 유휴 태스크가 사용한 프로세서 시간 ) * 100 / ( 시스템 전체에서 
+                    // 사용한 프로세서 시간 )
+                    if( qwCurrentMeasureTickCount - qwLastConsoleMeasureTickCount == 0 )
+                    {
+                        gs_stScheduler.qwConsoleProcessorLoad = 0;
+                    }
+                    else
+                    {
+                        gs_stScheduler.qwConsoleProcessorLoad = //100-  
+                        ( qwCurrentSpendTickInConsoleTask - qwLastSpendTickInConsoleTask ) * 
+                        100 /( qwCurrentMeasureTickCount - qwLastConsoleMeasureTickCount );
+                    }
+        
+                    // 현재 상태를 이전 상태에 보관
+                    qwLastConsoleMeasureTickCount = qwCurrentMeasureTickCount;
+                    qwLastSpendTickInConsoleTask = qwCurrentSpendTickInConsoleTask;
+                    }
+    }  
+
     
     // 태스크 종료 플래그가 설정된 경우, 콘텍스트를 저장하지 않고 대기 리스트에만 삽입
     if( pstRunningTask->qwFlags & TASK_FLAGS_ENDTASK )
@@ -598,7 +616,7 @@ BOOL kScheduleInInterrupt( void )
     else
     {
         kMemCpy( &( pstRunningTask->stContext ), pcContextAddress, sizeof( CONTEXT ) );
-        // kAddTaskToReadyList( pstRunningTask );
+        //kAddTaskToReadyList( pstRunningTask );
     }
     // 임계 영역 끝
     kUnlockForSystemData( bPreviousFlag );
@@ -653,6 +671,7 @@ BOOL kEndTask( QWORD qwTaskID )
     {
         pstTarget->qwFlags |= TASK_FLAGS_ENDTASK;
         SETPRIORITY( pstTarget->qwFlags, TASK_FLAGS_WAIT );
+        pstTarget->ticket = 0;
         
         // 임계 영역 끝
         kUnlockForSystemData( bPreviousFlag );
@@ -676,6 +695,7 @@ BOOL kEndTask( QWORD qwTaskID )
             {
                 pstTarget->qwFlags |= TASK_FLAGS_ENDTASK;
                 SETPRIORITY( pstTarget->qwFlags, TASK_FLAGS_WAIT );
+                pstTarget->ticket = 0;
             }
             // 임계 영역 끝
             kUnlockForSystemData( bPreviousFlag );
@@ -684,6 +704,7 @@ BOOL kEndTask( QWORD qwTaskID )
         
         pstTarget->qwFlags |= TASK_FLAGS_ENDTASK;
         SETPRIORITY( pstTarget->qwFlags, TASK_FLAGS_WAIT );
+        pstTarget->ticket = 0;
         kAddListToTail( &( gs_stScheduler.stWaitList ), pstTarget );
     }
     // 임계 영역 끝
@@ -781,6 +802,10 @@ QWORD kGetProcessorLoad( void )
     return gs_stScheduler.qwProcessorLoad;
 }
 
+QWORD kGetConsoleProcessorLoad( void ){
+    return gs_stScheduler.qwConsoleProcessorLoad;
+}
+
 /**
  *  스레드가 소속된 프로세스를 반환
  */
@@ -833,6 +858,7 @@ void kIdleTask( void )
         // 현재 상태를 저장
         qwCurrentMeasureTickCount = kGetTickCount();
         qwCurrentSpendTickInIdleTask = gs_stScheduler.qwSpendProcessorTimeInIdleTask;
+
         
         // 프로세서 사용량을 계산
         // 100 - ( 유휴 태스크가 사용한 프로세서 시간 ) * 100 / ( 시스템 전체에서 
@@ -846,6 +872,9 @@ void kIdleTask( void )
             gs_stScheduler.qwProcessorLoad = 100 - 
                 ( qwCurrentSpendTickInIdleTask - qwLastSpendTickInIdleTask ) * 
                 100 /( qwCurrentMeasureTickCount - qwLastMeasureTickCount );
+
+        //        kPrintf("idle: %d %d %d %d\n",qwCurrentMeasureTickCount,qwLastMeasureTickCount
+        // ,qwCurrentMeasureTickCount-qwLastMeasureTickCount, gs_stScheduler.qwProcessorLoad);
         }
         
         // 현재 상태를 이전 상태에 보관
@@ -869,6 +898,13 @@ void kIdleTask( void )
                     kUnlockForSystemData( bPreviousFlag );
                     break;
                 }
+
+            if(pstTask->stLink.qwID==testTCB[0]->stLink.qwID){
+                kPrintf("\nTask1 finish, took %d\n",kGetTickCount()-qwStartClock[0]);
+            }    
+            else if(pstTask->stLink.qwID==testTCB[1]->stLink.qwID){
+                kPrintf("\nTask2 finish, took %d\n",kGetTickCount()-qwStartClock[1]);
+            }
                 
                 if( pstTask->qwFlags & TASK_FLAGS_PROCESS )
                 {
