@@ -430,8 +430,8 @@ static TCB* kRemoveTaskFromReadyList( QWORD qwTaskID )
         return NULL;
     }    
 
-    pstTarget = kRemoveList( &( gs_stScheduler.vstReadyList), 
-                     qwTaskID );
+    pstTarget = kRemoveList( &( gs_stScheduler.vstReadyList), qwTaskID );
+
     return pstTarget;
 }
 
@@ -459,7 +459,7 @@ BOOL kChangePriority( QWORD qwTaskID, BYTE bPriority )
     if( pstTarget->stLink.qwID == qwTaskID )
     {
         SETPRIORITY( pstTarget->qwFlags, bPriority );
-        pstTarget->ticket = 20*(bPriority+1);
+        pstTarget->ticket = 20*(5-bPriority);
     }
     // 실행중인 태스크가 아니면 준비 리스트에서 찾아서 해당 우선 순위의 리스트로 이동
     else
@@ -474,14 +474,14 @@ BOOL kChangePriority( QWORD qwTaskID, BYTE bPriority )
             {
                 // 우선 순위를 설정
                 SETPRIORITY( pstTarget->qwFlags, bPriority );
-                pstTarget->ticket = 20*(bPriority+1);
+                pstTarget->ticket = 20*(5-bPriority);
             }
         }
         else
         {
             // 우선 순위를 설정하고 준비 리스트에 다시 삽입
             SETPRIORITY( pstTarget->qwFlags, bPriority );
-            pstTarget->ticket = 20* (bPriority+1);
+            pstTarget->ticket = 20* (5-bPriority);
             kAddTaskToReadyList( pstTarget );
         }
     }
@@ -539,7 +539,7 @@ void kSchedule( void )
     }
     else
     {
-        // kAddTaskToReadyList( pstRunningTask );
+        //kAddTaskToReadyList( pstRunningTask );   ///////////////////////////////////////////////////??
         kSwitchContext( &( pstRunningTask->stContext ), &( pstNextTask->stContext ) );
     }
 
@@ -598,7 +598,7 @@ BOOL kScheduleInInterrupt( void )
     else
     {
         kMemCpy( &( pstRunningTask->stContext ), pcContextAddress, sizeof( CONTEXT ) );
-        // kAddTaskToReadyList( pstRunningTask );
+        //kAddTaskToReadyList( pstRunningTask );
     }
     // 임계 영역 끝
     kUnlockForSystemData( bPreviousFlag );
@@ -653,6 +653,7 @@ BOOL kEndTask( QWORD qwTaskID )
     {
         pstTarget->qwFlags |= TASK_FLAGS_ENDTASK;
         SETPRIORITY( pstTarget->qwFlags, TASK_FLAGS_WAIT );
+        pstTarget->ticket = 0;
         
         // 임계 영역 끝
         kUnlockForSystemData( bPreviousFlag );
@@ -676,6 +677,7 @@ BOOL kEndTask( QWORD qwTaskID )
             {
                 pstTarget->qwFlags |= TASK_FLAGS_ENDTASK;
                 SETPRIORITY( pstTarget->qwFlags, TASK_FLAGS_WAIT );
+                pstTarget->ticket = 0;
             }
             // 임계 영역 끝
             kUnlockForSystemData( bPreviousFlag );
@@ -684,6 +686,7 @@ BOOL kEndTask( QWORD qwTaskID )
         
         pstTarget->qwFlags |= TASK_FLAGS_ENDTASK;
         SETPRIORITY( pstTarget->qwFlags, TASK_FLAGS_WAIT );
+        pstTarget->ticket = 0;
         kAddListToTail( &( gs_stScheduler.stWaitList ), pstTarget );
     }
     // 임계 영역 끝
