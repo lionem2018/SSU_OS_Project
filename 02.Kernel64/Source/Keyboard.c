@@ -10,6 +10,7 @@
 #include "AssemblyUtility.h"
 #include "Keyboard.h"
 #include "Queue.h"
+#include "Synchronization.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -629,14 +630,14 @@ BOOL kConvertScanCodeAndPutQueue( BYTE bScanCode )
     if( kConvertScanCodeToASCIICode( bScanCode, &( stData.bASCIICode ),
             &( stData.bFlags ) ) == TRUE )
     {
-        // 인터럽트 불가
-        bPreviousInterrupt = kSetInterruptFlag( FALSE );
+        // 임계 영역 시작
+        bPreviousInterrupt = kLockForSystemData();
 
         // 키 큐에 삽입
         bResult = kPutQueue( &gs_stKeyQueue, &stData );
 
-        // 이전 인터럽트 플래그 복원
-        kSetInterruptFlag( bPreviousInterrupt );
+        // 임계 영역 끝
+        kUnlockForSystemData( bPreviousInterrupt );
     }
 
     return bResult;
@@ -656,13 +657,13 @@ BOOL kGetKeyFromKeyQueue( KEYDATA* pstData )
         return FALSE;
     }
 
-    // 인터럽트 불가
-    bPreviousInterrupt = kSetInterruptFlag( FALSE );
+    // 임계 영역 시작
+    bPreviousInterrupt = kLockForSystemData();
 
     // 키 큐에서 키 데이터를 제거
     bResult = kGetQueue( &gs_stKeyQueue, pstData );
 
-    // 이전 인터럽트 플래그 복원
-    kSetInterruptFlag( bPreviousInterrupt );
+    // 임계 영역 끝
+    kUnlockForSystemData( bPreviousInterrupt );
     return bResult;
 }

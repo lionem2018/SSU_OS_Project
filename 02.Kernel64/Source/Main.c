@@ -10,6 +10,10 @@
 #include "Keyboard.h"
 #include "Descriptor.h"
 #include "PIC.h"
+#include "Console.h"
+#include "ConsoleShell.h"
+#include "Task.h"
+#include "PIT.h"
 
 // О©╫т╪О©╫ О©╫О©╫О©╫О©╫
 void kPrintString( int iX, int iY, const char* pcString );
@@ -17,7 +21,7 @@ void kPrintStringOn0xAB8000( int iX, int iY, const char* pcString );
 void kWriteTestAt0x1FF000();
 
 /**
- *  О©╫ф╥О©╫ О©╫т╪О©╫О©╫О©╫ C О©╫О©╫О©? д©О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫ О©╫н╨О©╫О©╫О©╫
+ *  О©╫ф╥О©╫ О©╫т╪О©╫О©╫О©╫ C О©╫О©╫О©?? д©О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫ О©╫н╨О©╫О©╫О©╫
  */
 void Main( void )
 {
@@ -27,86 +31,119 @@ void Main( void )
     KEYDATA stData;
     DWORD tmp;
 
-    kPrintString( 0, 11, "Switch To IA-32e Mode Success~!!" );
-    kPrintString( 0, 12, "IA-32e C Language Kernel Start..............[Pass]" );
+    int iCursorX, iCursorY;
 
-    // print test on 0xAB8000 (another virtual video address)
-    kPrintStringOn0xAB8000( 0, 18, "This message is printed through the video memory relocated to 0xAB8000" );
-    
+    // Л╫≤Л├■?²└ К╗╪Л?? Л╢┬Й╦╟?≥■?∙° ?⌡└, ?▀╓?²▄ ?·▒?≈┘?²└ ?┬≤?√┴
+    kInitializeConsole( 0, 11 );    
+    kPrintf( "Switch To IA-32e Mode Success~!!\n" );
+    kPrintf( "IA-32e C Language Kernel Start..............[Pass]\n" );
+    kPrintf( "Initialize Console..........................[Pass]\n" );
+
     // write test at 0x1FF000 (occur error)
     //kWriteTestAt0x1FF000();
-    kPrintString( 0, 12, "GDT Initialize And Switch For IA-32e Mode...[    ]" );
+    // К╤??▄┘ ?┐│?≥╘?²└ ?≥■К╘╢Л≈░ Л╤°К═╔
+    kGetCursor( &iCursorX, &iCursorY );
+    kPrintf( "GDT Initialize And Switch For IA-32e Mode...[    ]" );
     kInitializeGDTTableAndTSS();
     kLoadGDTR( GDTR_STARTADDRESS );
-    kPrintString( 45, 12, "Pass" );
+    kSetCursor( 45, iCursorY++ );
+    kPrintf( "Pass\n" );
 
-    kPrintString( 0, 13, "TSS Segment Load............................[    ]" );
+    kPrintf( "TSS Segment Load............................[    ]" );
     kLoadTR( GDT_TSSSEGMENT );
-    kPrintString( 45, 13, "Pass" );
+    kSetCursor( 45, iCursorY++ );
+    kPrintf( "Pass\n" );
 
-    kPrintString( 0, 14, "IDT Initialize..............................[    ]" );
-    kInitializeIDTTables();
+    kPrintf( "IDT Initialize..............................[    ]" );
+    kInitializeIDTTables();    
     kLoadIDTR( IDTR_STARTADDRESS );
-    kPrintString( 45, 14, "Pass" );
+    kSetCursor( 45, iCursorY++ );
+    kPrintf( "Pass\n" );
 
-    kPrintString( 0, 15, "Keyboard Activate And Queue Initialize......[    ]" );
-    // е╟╨╦╣Е╦╕ х╟╪╨х╜
+    kPrintf( "Total RAM Size Check........................[    ]" );
+    kCheckTotalRAMSize();
+    kSetCursor( 45, iCursorY++ );
+    kPrintf( "Pass], Size = %d MB\n", kGetTotalRAMSize() );
+
+    kPrintf( "TCB Pool And Scheduler Initialize...........[Pass]\n" );
+    iCursorY++;
+    kInitializeScheduler();
+    // 1ms╢Г гя╧Ь╬© юнем╥╢ф╝╟║ ╧ъ╩Щго╣╣╥о ╪Ёа╓
+    kInitializePIT( MSTOCOUNT( 1 ), 1 );
+
+    kPrintf("Keyboard Activate And Queue Initialize......[    ]" );
+    // е╟О©╫О©╫О©╫Е╦╕ х╟О©╫О©╫х╜
     if( kInitializeKeyboard() == TRUE )
     {
-        kPrintString( 45, 15, "Pass" );
+        //iCursorY--;
+        kSetCursor( 45, iCursorY++ );
+        kPrintf( "Pass\n" );
         kChangeKeyboardLED( FALSE, FALSE, FALSE );
     }
     else
     {
-        kPrintString( 45, 15, "Fail" );
+        kSetCursor( 45, iCursorY++ );
+        kPrintf( "Fail\n" );
         while( 1 ) ;
     }
 
-    kPrintString( 0, 16, "PIC Controller And Interrupt Initialize.....[    ]" );
-    // PIC даф╝╥я╥╞ цй╠Бх╜ ╧в ╦П╣Г юнем╥╢ф╝ х╟╪╨х╜
+    kPrintf( "PIC Controller And Interrupt Initialize.....[    ]" );
+    // PIC О©╫О©╫ф╝О©╫я╥О©╫ О©╫й╠О©╫х╜ О©╫О©╫ О©╫О©╫О©? О©╫О©╫О©╫м╥О©╫ф╝ х╟О©╫О©╫х╜
     kInitializePIC();
     kMaskPICInterrupt( 0 );
     kEnableInterrupt();
-    kPrintString( 45, 16, "Pass" );
+    kSetCursor( 45, iCursorY++ );
+    kPrintf( "Pass\n" );
 
+    // ю╞хч еб╫╨е╘╦╕ ╫ц╫╨еш ╫╨╥╧╣Е╥н ╩Щ╪╨го╟М ╪пю╩ ╫цюш
+    kCreateTask( TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD | TASK_FLAGS_SYSTEM | TASK_FLAGS_IDLE, 0, 0, 
+            ( QWORD ) kIdleTask );
+    kStartConsoleShell();
+
+    // print test on 0xAB8000 (another virtual video address)
+    kPrintStringOn0xAB8000( 0, 20, "This message is printed through the video memory relocated to 0xAB8000" );
+    
+    kPrintf( "\n" );
+/*
     while( 1 )
     {
-        // е╟ е╔©║ ╣╔юлем╟║ южю╦╦И е╟╦╕ цЁ╦╝гт
+        // е╟ е╔О©╫О©╫ О©╫О©╫О©╫О©╫О©╫м╟О©╫ О©╫О©╫О©╫О©╫О©╫О©╫ е╟О©╫О©╫ цЁО©╫О©╫О©╫О©╫
         if( kGetKeyFromKeyQueue( &stData ) == TRUE )
         {
-            // е╟╟║ ╢╜╥╞аЁю╦╦И е╟юг ASCII дз╣Е ╟╙ю╩ х╜╦И©║ цБ╥б
+            // е╟О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ е╟О©╫О©╫ ASCII О©╫з╣О©╫ О©╫О©╫О©╫О©╫ х╜О©╫И©║ О©╫О©╫О©?
             if( stData.bFlags & KEY_FLAGS_DOWN )
             {
-                // е╟ ╣╔юлемюг ACII дз╣Е ╟╙ю╩ юЗюЕ
+                // е╟ О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ ACII О©╫з╣О©╫ О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫
                 vcTemp[ 0 ] = stData.bASCIICode;
                 kPrintString( i++, 17, vcTemp );
 
-                // 0юл ют╥б╣г╦И ╨╞╪Ж╦╕ 0ю╦╥н Ё╙╢╘╬Н Divide Error ©╧©э(╨╓ем 0╧Ь)ю╩
-                // ╧ъ╩Щ╫це╢
+                // 0О©╫О©╫ О©╫т╥б╣г╦О©╫ О©╫О©╫О©╫О©╫О©╫О©╫ 0О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫ Divide Error О©╫О©╫О©╫О©╫(О©╫О©╫О©╫О©╫ 0О©╫О©╫)О©╫О©╫
+                // О©╫ъ╩О©╫О©╫О©╫е╢
                 if( vcTemp[ 0 ] == '0' )
                 {
-                    // ╬ф╥║ дз╣Е╦╕ ╪ЖгЮго╦И Divide Error ©╧©э╟║ ╧ъ╩Щго©╘
-                    // д©Ёнюг юс╫ц гз╣И╥╞╟║ ╪ЖгЮ╣й
+                    // О©╫ф╥О©╫ О©╫з╣Е╦╕ О©╫О©╫О©╫О©╫О©╫о╦О©╫ Divide Error О©╫О©╫О©╫э╟О©╫ О©╫ъ╩О©╫О©╫о©О©╫
+                    // д©О©╫О©╫О©╫О©╫ О©╫с╫О©╫ О©╫з╣И╥╞О©╫О©╫ О©╫О©╫О©╫О©╫О©?
                     //bTemp = bTemp / 0;
                     kWriteTestAt0x1FF000();
                 }
             }
         }
-    }
+    }*/
+    kStartConsoleShell();
 }
 
 /**
- *  О©╫О©╫О©╫з©О©╫О©╫О©╫ X, Y О©╫О©╫д║О©╫О©╫ О©╫О©╫О©?
+ *  О©╫О©╫О©╫з©О©╫О©╫О©╫ X, Y О©╫О©╫д║О©╫О©╫ О©╫О©╫О©??
  */
 void kPrintString( int iX, int iY, const char* pcString )
 {
     CHARACTER* pstScreen = ( CHARACTER* ) 0xB8000;
     int i;
     
-    // X, Y О©╫О©╫г╔ О©╫О©╫ О©╫л©О©╫О©╫ь╪О©╫ О©╫О©╫О©╫з©О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©? О©╫О©╫Е╥╧О©╫О©╫О©╫О©? О©╫О©╫О©?
+    // X, Y О©╫О©╫г╔ О©╫О©╫ О©╫л©О©╫О©╫ь╪О©╫ О©╫О©╫О©╫з©О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©?? О©╫О©╫Е╥╧О©╫О©╫О©╫О©?? О©╫О©╫О©??
     pstScreen += ( iY * 80 ) + iX;
 
-    // NULLО©╫О©╫ О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫з©О©╫ О©╫О©╫О©?
+    // NULLО©╫О©╫ О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫з©О©╫ О©╫О©╫О©??
     for( i = 0 ; pcString[ i ] != 0 ; i++ )
     {
         pstScreen[ i ].bCharactor = pcString[ i ];
@@ -118,10 +155,10 @@ void kPrintStringOn0xAB8000(int iX, int iY, const char* pcString)
     CHARACTER* pstScreen = ( CHARACTER* ) 0xAB8000;
     int i;
     
-    // X, Y абг╔╦╕ юл©Кгь╪╜ ╧╝юз©╜ю╩ цБ╥бгр ╬Н╣Е╥╧╫╨╦╕ ╟Х╩Й
+    // X, Y О©╫О©╫г╔О©╫О©╫ О©╫л©О©╫О©╫ь╪О©╫ О©╫О©╫О©╫з©О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©? О©╫О©╫Е╥╧О©╫О©╫О©╫О©? О©╫О©╫О©?
     pstScreen += ( iY * 80 ) + iX;
     
-    // NULLюл Ё╙©ц ╤╖╠НаЖ ╧╝юз©╜ цБ╥б
+    // NULLО©╫О©╫ О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫з©О©╫ О©╫О©╫О©?
     for( i = 0 ; pcString[ i ] != 0 ; i++ )
     {
         pstScreen[ i ].bCharactor = pcString[ i ];

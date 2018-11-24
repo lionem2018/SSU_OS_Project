@@ -25,6 +25,9 @@
 #define FALSE   0
 #define NULL    0
 
+// stddef.h Çì´õ¿¡ Æ÷ÇÔµÈ offsetof() ¸ÅÅ©·ÎÀÇ ³»¿ë
+#define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 // ï¿½ï¿½ï¿½ï¿½Ã¼

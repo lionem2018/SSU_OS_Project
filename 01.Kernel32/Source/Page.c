@@ -56,24 +56,24 @@ void kInitializePageTables( void )
 		dwMappingAddress += PAGE_DEFAULTSIZE;
 	}
 
-	// set read-only area (0x1ff000 ~ 0x200000)
-	kSetPageEntryData( &( pstPDEntry[ 0 ] ), 0, 0x146000, PAGE_FLAGS_DEFAULT, 0 );
+	// // set read-only area (0x1ff000 ~ 0x200000)
+	// kSetPageEntryData( &( pstPDEntry[ 0 ] ), 0, 0x146000, PAGE_FLAGS_DEFAULT, 0 );
 
-	PDENTRY* tmpPTEntry = (PDENTRY *) 0x146000;
-	dwMappingAddress = 0;
-	for( i = 0; i < PAGE_MAXENTRYCOUNT; i++ )
-	{
-		kSetPageEntryData( &( tmpPTEntry[ i ] ), 0, dwMappingAddress, PAGE_FLAGS_DEFAULT, 0 );
-		dwMappingAddress += PAGE_SMALLSIZE;
-	}
+	// PDENTRY* tmpPTEntry = (PDENTRY *) 0x146000;
+	// dwMappingAddress = 0;
+	// for( i = 0; i < PAGE_MAXENTRYCOUNT; i++ )
+	// {
+	// 	kSetPageEntryData( &( tmpPTEntry[ i ] ), 0, dwMappingAddress, PAGE_FLAGS_DEFAULT, 0 );
+	// 	dwMappingAddress += PAGE_SMALLSIZE;
+	// }
 
-	kSetPageEntryData( &( tmpPTEntry[ PAGE_MAXENTRYCOUNT-1 ] ), 0, 0x1ff000, 0, 0 );
+	// kSetPageEntryData( &( tmpPTEntry[ PAGE_MAXENTRYCOUNT-1 ] ), 0, 0x1ff000, 0, 0 );
 
-	// set VA AB8000 = PA B8000
-	PDENTRY* tmpPDEntry = ( PDENTRY* ) 0x102000;
-    tmpPDEntry = tmpPDEntry + 5;
+	// // set VA AB8000 = PA B8000
+	// PDENTRY* tmpPDEntry = ( PDENTRY* ) 0x102000;
+    // tmpPDEntry = tmpPDEntry + 5;
 
-	kSetPageEntryData( tmpPDEntry, 0, 0x00, PAGE_FLAGS_DEFAULT | PAGE_FLAGS_PS, 0 );
+	// kSetPageEntryData( tmpPDEntry, 0, 0x00, PAGE_FLAGS_DEFAULT | PAGE_FLAGS_PS, 0 );
 }
 
 /**

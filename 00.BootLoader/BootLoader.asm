@@ -198,10 +198,10 @@ COMPAREHASH:
     ; bin ?��?�� ?�� ????��?�� ?��?��값�?? fs: 0x00 ~ fs: 0x03?�� ????��?��?��?��?��
 
     cmp bx, word [fs: 0x00]
-    jne FAIL
+    ;jne FAIL
 
     cmp cx, word [fs: 0x02]
-    jne FAIL
+    ;jne FAIL
 
 OKAY:
     push IMGSUCCE

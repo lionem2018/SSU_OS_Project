@@ -3,16 +3,20 @@
  *  date    2009/01/24
  *  author  kkamagui
  *          Copyright(c)2008 All rights reserved by kkamagui
- *  brief   인터럽트 및 예외 핸들러에 관련된 소스 파일
+ *  brief   ?씤?꽣?읇?듃 諛? ?삁?쇅 ?빖?뱾?윭?뿉 愿??젴?맂 ?냼?뒪 ?뙆?씪
  */
 
 #include "InterruptHandler.h"
 #include "PIC.h"
 #include "Keyboard.h"
 #include "Page.h"
-
+#include "Console.h"
+#include "RTC.h"
+#include "Utility.h"
+#include "Task.h"
+#include "Descriptor.h"
 /**
- *  공통으로 사용하는 예외 핸들러
+ *  怨듯넻?쑝濡? ?궗?슜?븯?뒗 ?삁?쇅 ?빖?뱾?윭
  */
 void kCommonExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
 {
@@ -27,23 +31,23 @@ void kCommonExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
     int position = 0;
     while (1)
     {
-        int mod = decimal % 16;    // 16으로 나누었을 때 나머지를 구함
-        if (mod < 10) // 나머지가 10보다 작으면
+        int mod = decimal % 16;    // 16?쑝濡? ?굹?늻?뿀?쓣 ?븣 ?굹癒몄??瑜? 援ы븿
+        if (mod < 10) // ?굹癒몄??媛? 10蹂대떎 ?옉?쑝硫?
         {
-            // 숫자 0의 ASCII 코드 값 48 + 나머지
+            // ?닽?옄 0?쓽 ASCII 肄붾뱶 媛? 48 + ?굹癒몄??
             hexadecimal[position] = 48 + mod;
         }
-        else    // 나머지가 10보다 크거나 같으면
+        else    // ?굹癒몄??媛? 10蹂대떎 ?겕嫄곕굹 媛숈쑝硫?
         {
-            // 나머지에서 10을 뺀 값과 영문 대문자 A의 ASCII 코드 값 65를 더함
+            // ?굹癒몄???뿉?꽌 10?쓣 類? 媛믨낵 ?쁺臾? ???臾몄옄 A?쓽 ASCII 肄붾뱶 媛? 65瑜? ?뜑?븿
             hexadecimal[position] = 97 + (mod - 10);
         }
 
-        decimal = decimal / 16;    // 16으로 나눈 몫을 저장
+        decimal = decimal / 16;    // 16?쑝濡? ?굹?늿 紐レ쓣 ????옣
 
-        position++;    // 자릿수 변경
+        position++;    // ?옄由우닔 蹂?寃?
 
-        if (decimal == 0)    // 몫이 0이되면 반복을 끝냄
+        if (decimal == 0)    // 紐レ씠 0?씠?릺硫? 諛섎났?쓣 ?걹?깂
             break;
     }
 
@@ -53,21 +57,27 @@ void kCommonExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
         faultAddress[idx++]=hexadecimal[p--];
     }
 
-    // 인터럽트 벡터를 화면 오른쪽 위에 2자리 정수로 출력
+    // ?씤?꽣?읇?듃 踰≫꽣瑜? ?솕硫? ?삤瑜몄そ ?쐞?뿉 2?옄由? ?젙?닔濡? 異쒕젰
     vcBuffer[ 0 ] = '0' + iVectorNumber / 10;
     vcBuffer[ 1 ] = '0' + iVectorNumber % 10;
-
+/*
     kPrintString( 0, 0, "====================================================" );
     kPrintString( 0, 1, "                 Exception Occur~!!!!               " );
     kPrintString( 0, 2, "                    Address:                        " );
     kPrintString( 27, 2, faultAddress );
     kPrintString( 0, 3, "====================================================" );
+*/
+    kPrintStringXY( 0, 0, "====================================================" );
+    kPrintStringXY( 0, 1, "                 Exception Occur~!!!!               " );
+    kPrintStringXY( 0, 2, "                    Vector:                         " );
+    kPrintStringXY( 27, 2, vcBuffer );
+    kPrintStringXY( 0, 3, "====================================================" );
 
     while( 1 ) ;
 }
 
 /**
- *  공통으로 사용하는 인터럽트 핸들러
+ *  怨듯넻?쑝濡? ?궗?슜?븯?뒗 ?씤?꽣?읇?듃 ?빖?뱾?윭
  */
 void kCommonInterruptHandler( int iVectorNumber )
 {
@@ -75,22 +85,22 @@ void kCommonInterruptHandler( int iVectorNumber )
     static int g_iCommonInterruptCount = 0;
 
     //=========================================================================
-    // 인터럽트가 발생했음을 알리려고 메시지를 출력하는 부분
-    // 인터럽트 벡터를 화면 오른쪽 위에 2자리 정수로 출력
+    // ?씤?꽣?읇?듃媛? 諛쒖깮?뻽?쓬?쓣 ?븣由щ젮怨? 硫붿떆吏?瑜? 異쒕젰?븯?뒗 遺?遺?
+    // ?씤?꽣?읇?듃 踰≫꽣瑜? ?솕硫? ?삤瑜몄そ ?쐞?뿉 2?옄由? ?젙?닔濡? 異쒕젰
     vcBuffer[ 5 ] = '0' + iVectorNumber / 10;
     vcBuffer[ 6 ] = '0' + iVectorNumber % 10;
-    // 발생한 횟수 출력
+    // 諛쒖깮?븳 ?슏?닔 異쒕젰
     vcBuffer[ 8 ] = '0' + g_iCommonInterruptCount;
     g_iCommonInterruptCount = ( g_iCommonInterruptCount + 1 ) % 10;
-    kPrintString( 70, 0, vcBuffer );
+    kPrintStringXY( 70, 0, vcBuffer );
     //=========================================================================
 
-    // EOI 전송
+    // EOI ?쟾?넚
     kSendEOIToPIC( iVectorNumber - PIC_IRQSTARTVECTOR );
 }
 
 /**
- *  키보드 인터럽트의 핸들러
+ *  ?궎蹂대뱶 ?씤?꽣?읇?듃?쓽 ?빖?뱾?윭
  */
 void kKeyboardHandler( int iVectorNumber )
 {
@@ -99,24 +109,24 @@ void kKeyboardHandler( int iVectorNumber )
     BYTE bTemp;
 
     //=========================================================================
-    // 인터럽트가 발생했음을 알리려고 메시지를 출력하는 부분
-    // 인터럽트 벡터를 화면 왼쪽 위에 2자리 정수로 출력
+    // ?씤?꽣?읇?듃媛? 諛쒖깮?뻽?쓬?쓣 ?븣由щ젮怨? 硫붿떆吏?瑜? 異쒕젰?븯?뒗 遺?遺?
+    // ?씤?꽣?읇?듃 踰≫꽣瑜? ?솕硫? ?쇊履? ?쐞?뿉 2?옄由? ?젙?닔濡? 異쒕젰
     vcBuffer[ 5 ] = '0' + iVectorNumber / 10;
     vcBuffer[ 6 ] = '0' + iVectorNumber % 10;
-    // 발생한 횟수 출력
+    // 諛쒖깮?븳 ?슏?닔 異쒕젰
     vcBuffer[ 8 ] = '0' + g_iKeyboardInterruptCount;
     g_iKeyboardInterruptCount = ( g_iKeyboardInterruptCount + 1 ) % 10;
-    kPrintString( 0, 0, vcBuffer );
+    kPrintStringXY( 0, 0, vcBuffer );
     //=========================================================================
 
-    // 키보드 컨트롤러에서 데이터를 읽어서 ASCII로 변환하여 큐에 삽입
+    // ?궎蹂대뱶 而⑦듃濡ㅻ윭?뿉?꽌 ?뜲?씠?꽣瑜? ?씫?뼱?꽌 ASCII濡? 蹂??솚?븯?뿬 ?걧?뿉 ?궫?엯
     if( kIsOutputBufferFull() == TRUE )
     {
         bTemp = kGetKeyboardScanCode();
         kConvertScanCodeAndPutQueue( bTemp );
     }
 
-    // EOI 전송
+    // EOI ?쟾?넚
     kSendEOIToPIC( iVectorNumber - PIC_IRQSTARTVECTOR );
 }
 
@@ -134,25 +144,26 @@ void kPageFaultExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
     _Bool isProtection = (*ErrorCode) & 0x1;
  
     int position = 0;
+    /*
     while (1)
     {
-        int mod = decimal % 16;    // 16으로 나누었을 때 나머지를 구함
-        if (mod < 10) // 나머지가 10보다 작으면
+        int mod = decimal % 16;    // 16?쑝濡? ?굹?늻?뿀?쓣 ?븣 ?굹癒몄??瑜? 援ы븿
+        if (mod < 10) // ?굹癒몄??媛? 10蹂대떎 ?옉?쑝硫?
         {
-            // 숫자 0의 ASCII 코드 값 48 + 나머지
+            // ?닽?옄 0?쓽 ASCII 肄붾뱶 媛? 48 + ?굹癒몄??
             hexadecimal[position] = 48 + mod;
         }
-        else    // 나머지가 10보다 크거나 같으면
+        else    // ?굹癒몄??媛? 10蹂대떎 ?겕嫄곕굹 媛숈쑝硫?
         {
-            // 나머지에서 10을 뺀 값과 영문 대문자 A의 ASCII 코드 값 65를 더함
+            // ?굹癒몄???뿉?꽌 10?쓣 類? 媛믨낵 ?쁺臾? ???臾몄옄 A?쓽 ASCII 肄붾뱶 媛? 65瑜? ?뜑?븿
             hexadecimal[position] = 97 + (mod - 10);
         }
 
-        decimal = decimal / 16;    // 16으로 나눈 몫을 저장
+        decimal = decimal / 16;    // 16?쑝濡? ?굹?늿 紐レ쓣 ????옣
 
-        position++;    // 자릿수 변경
+        position++;    // ?옄由우닔 蹂?寃?
 
-        if (decimal == 0)    // 몫이 0이되면 반복을 끝냄
+        if (decimal == 0)    // 紐レ씠 0?씠?릺硫? 諛섎났?쓣 ?걹?깂
             break;
     }
 
@@ -162,7 +173,7 @@ void kPageFaultExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
         faultAddress[idx++]=hexadecimal[p--];
     }
 
-    // 인터럽트 벡터를 화면 오른쪽 위에 2자리 정수로 출력
+    // ?씤?꽣?읇?듃 踰≫꽣瑜? ?솕硫? ?삤瑜몄そ ?쐞?뿉 2?옄由? ?젙?닔濡? 異쒕젰
     vcBuffer[ 0 ] = '0' + iVectorNumber / 10;
     vcBuffer[ 1 ] = '0' + iVectorNumber % 10;
 
@@ -180,6 +191,73 @@ void kPageFaultExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
 
 
     kModifyPageTableEntryFlags(decimal);
-    
+    */ 
+}
+void kTimerHandler(int iVectorNumber){
+    BYTE bHour, bMinute, bSecond; 
+    char cHour[3] = {'\0'},cMinute[3] = {'\0'}, cSecond[3] = {'\0'};
+    char vcBuffer[] = "[INT:  , ]";
+    static int g_iKeyboardInterruptCount = 0;
+    BYTE bTemp;
+
+    //=========================================================================
+    // ?씤?꽣?읇?듃媛? 諛쒖깮?뻽?쓬?쓣 ?븣由щ젮怨? 硫붿떆吏?瑜? 異쒕젰?븯?뒗 遺?遺?
+    // ?씤?꽣?읇?듃 踰≫꽣瑜? ?솕硫? ?쇊履? ?쐞?뿉 2?옄由? ?젙?닔濡? 異쒕젰
+    vcBuffer[ 5 ] = '0' + iVectorNumber / 10;
+    vcBuffer[ 6 ] = '0' + iVectorNumber % 10;
+    // 諛쒖깮?븳 ?슏?닔 異쒕젰
+    vcBuffer[ 8 ] = '0' + g_iKeyboardInterruptCount;
+    g_iKeyboardInterruptCount = ( g_iKeyboardInterruptCount + 1 ) % 10;
+    kPrintStringXY( 70, 0, vcBuffer );
+    //=========================================================================
+
+    kReadRTCTime( &bHour, &bMinute, &bSecond );
+    if(bHour < 10){
+        kIToA(bHour,cHour, 10);
+        kMemCpy(cHour +1 , cHour,1);
+        cHour[0] = '0';
+    }
+    else
+        kIToA(bHour,cHour, 10);
+
+    if(bMinute < 10){
+        kIToA(bMinute,cMinute, 10);
+        kMemCpy(cMinute +1 , cMinute,1);
+        cMinute[0] = '0';
+    }
+
+    else
+        kIToA(bMinute,cMinute, 10);
+        
+    if(bSecond < 10){
+        kIToA(bSecond,cSecond, 10);
+        kMemCpy(cSecond +1 , cSecond,1);
+        cSecond[0] = '0';
+    }
+
+    else
+        kIToA(bSecond,cSecond, 10);
+        
+    kPrintStringXY( 71, 24, cHour);
+    kPrintStringXY( 73, 24, ":");
+    kPrintStringXY( 74, 24, cMinute);
+    kPrintStringXY( 76, 24, ":");
+    kPrintStringXY( 77, 24, cSecond);
+
+    kSendEOIToPIC( iVectorNumber - PIC_IRQSTARTVECTOR );
+
+    // EOI 전송
+    kSendEOIToPIC( iVectorNumber - PIC_IRQSTARTVECTOR );
+
+    // 타이머 발생 횟수를 증가
+    g_qwTickCount++;
+
+    // 태스크가 사용한 프로세서의 시간을 줄임
+    kDecreaseProcessorTime();
+    // 프로세서가 사용할 수 있는 시간을 다 썼다면 태스크 전환 수행
+    if( kIsProcessorTimeExpired() == TRUE )
+    {
+        kScheduleInInterrupt();
+    }
     
 }
