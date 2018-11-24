@@ -90,6 +90,7 @@
 #define GETTCBFROMTHREADLINK( x )   ( TCB* ) ( ( QWORD ) ( x ) - offsetof( TCB, \
                                       stThreadLink ) )
 
+#define CONSOLE_ID                     0x100000000
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -182,6 +183,12 @@ typedef struct kSchedulerStruct
     
     // 유휴 태스크(Idle Task)에서 사용한 프로세서 시간
     QWORD qwSpendProcessorTimeInIdleTask;
+
+    // console task processor time
+    QWORD qwSpendProcessorTimeInConsoleTask;
+
+    // console task processor load
+    QWORD qwConsoleProcessorLoad;
 } SCHEDULER;
 
 #pragma pack( pop )
@@ -201,6 +208,9 @@ TCB* kCreateTask( QWORD qwFlags, void* pvMemoryAddress, QWORD qwMemorySize,
                   QWORD qwEntryPointAddress );
 static void kSetUpTask( TCB* pstTCB, QWORD qwFlags, QWORD qwEntryPointAddress,
         void* pvStackAddress, QWORD qwStackSize );
+
+TCB* kCreateFairnessTask(QWORD qwFlags, void* pvMemoryAddress, QWORD qwMemorySize, 
+                  QWORD qwEntryPointAddress,QWORD testnum);
 
 //==============================================================================
 //  스케줄러 관련
@@ -227,6 +237,7 @@ static TCB* kGetProcessByThread( TCB* pstThread );
 static QWORD kAllTicketNum();
 
 int getSchedulerReadyListCount();
+QWORD kGetConsoleProcessorLoad( void );
 
 //==============================================================================
 //  유휴 태스크 관련

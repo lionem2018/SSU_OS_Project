@@ -40,7 +40,8 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         { "testmutex", "Test Mutex Function", kTestMutex },
         { "testthread", "Test Thread And Process Function", kTestThread },
         { "showmatrix", "Show Matrix Screen", kShowMatrix },
-        { "checktask", "Check task state", kCheckTask }
+        { "checktask", "Check task state", kCheckTask },
+        { "showfairness", "Show fairness rate of two task", kShowFairness}
 };                                     
 
 //==============================================================================
@@ -667,7 +668,7 @@ static void kTestTask1( void )
     iMargin = ( pstRunningTask->stLink.qwID & 0xFFFFFFFF ) % 10;
     
     // 화면 네 귀퉁이를 돌면서 문자 출력
-    for( j = 0 ; j < 20000 ; j++ )
+    for( j = 0 ; j < 1000000 ; j++ )
     {
         switch( i )
         {
@@ -733,7 +734,7 @@ static void kTestTask2( void )
     iOffset = CONSOLE_WIDTH * CONSOLE_HEIGHT - 
         ( iOffset % ( CONSOLE_WIDTH * CONSOLE_HEIGHT ) );
 
-    while( 1 )
+    while(1)
     {
         // 회전하는 바람개비를 표시
         pstScreen[ iOffset ].bCharactor = vcData[ i % 4 ];
@@ -787,8 +788,6 @@ static void kCreateTestTask( const char* pcParameterBuffer )
             }
         }
         kPrintf( "Task2 %d Created\n", i );
-
-        //kCheckTask(pcParameterBuffer);
 
         break;
     }    
@@ -951,6 +950,7 @@ static void kKillTask( const char* pcParameterBuffer )
 static void kCPULoad( const char* pcParameterBuffer )
 {
     kPrintf( "Processor Load : %d%%\n", kGetProcessorLoad() );
+    kPrintf( "Console Load : %d%%\n", kGetConsoleProcessorLoad() );
 }
     
 // 뮤텍스 테스트용 뮤텍스와 변수
@@ -1055,19 +1055,6 @@ static void kTestThread( const char* pcParameterBuffer )
         kPrintf( "Process Create Fail\n" );
     }
 }
-
-// // 난수를 발생시키기 위한 변수
-// static volatile QWORD gs_qwRandomValue = 0;
-
-// /**
-//  *  임의의 난수를 반환
-//  */
-// QWORD kRandom( void )
-// {
-//     gs_qwRandomValue = ( gs_qwRandomValue * 412153 + 5571031 ) >> 16;
-//     return gs_qwRandomValue;
-// }
-
 
 
 /**
@@ -1195,4 +1182,16 @@ static void kCheckTask( const char* pcParameterBuffer )
 
         kSleep( 2000 );
     }
+}
+
+void kShowFairness(){
+    int i=0;
+    for( i = 0 ; i < 2 ; i++ )
+        {    
+             if( kCreateFairnessTask( TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, ( QWORD ) kTestTask1,i)== NULL )
+            {
+                break;
+            }
+        }
+    kPrintf( "Task1 %d Created\n", i );
 }
