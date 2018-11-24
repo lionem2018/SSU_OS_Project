@@ -256,6 +256,8 @@ void kInitializeScheduler( void )
     // 프로세서 사용률을 계산하는데 사용하는 자료구조 초기화
     gs_stScheduler.qwSpendProcessorTimeInIdleTask = 0;
     gs_stScheduler.qwProcessorLoad = 0;
+
+    srand(kGetTickCount());
 }
 
 /**
@@ -336,7 +338,7 @@ static TCB* kGetNextTaskToRun( void )
 
     TCB* pstTCB;
 
-    srand(kGetTickCount());
+    //srand(kGetTickCount());
 
     int counter = 0;
     int winner = rand()%kAllTicketNum();
@@ -467,7 +469,7 @@ BOOL kChangePriority( QWORD qwTaskID, BYTE bPriority )
     else
     {
         // 준비 리스트에서 태스크를 찾지 못하면 직접 태스크를 찾아서 우선 순위를 설정
-        pstTarget = kRemoveTaskFromReadyList( qwTaskID );
+        pstTarget = kFindList( &(gs_stScheduler.vstReadyList) ,qwTaskID );
         if( pstTarget == NULL )
         {
             // 태스크 ID로 직접 찾아서 설정
@@ -484,7 +486,7 @@ BOOL kChangePriority( QWORD qwTaskID, BYTE bPriority )
             // 우선 순위를 설정하고 준비 리스트에 다시 삽입
             SETPRIORITY( pstTarget->qwFlags, bPriority );
             pstTarget->ticket = 20* (5-bPriority);
-            kAddTaskToReadyList( pstTarget );
+            //kAddTaskToReadyList( pstTarget );
         }
     }
     // 임계 영역 끝
@@ -531,6 +533,8 @@ void kSchedule( void )
         gs_stScheduler.qwSpendProcessorTimeInIdleTask += 
             TASK_PROCESSORTIME - gs_stScheduler.iProcessorTime;
     }
+
+    pstRunningTask->execCount += TASK_PROCESSORTIME - gs_stScheduler.iProcessorTime;
     
     // 태스크 종료 플래그가 설정된 경우 콘텍스트를 저장할 필요가 없으므로, 대기 리스트에
     // 삽입하고 콘텍스트 전환
@@ -543,7 +547,7 @@ void kSchedule( void )
     {
         //kAddTaskToReadyList( pstRunningTask );   ///////////////////////////////////////////////////??
         kSwitchContext( &( pstRunningTask->stContext ), &( pstNextTask->stContext ) );
-        pstNextTask->execCount += TASK_PROCESSORTIME - gs_stScheduler.iProcessorTime;
+
     }
 
     // 프로세서 사용 시간을 업데이트
@@ -590,12 +594,15 @@ BOOL kScheduleInInterrupt( void )
     {
         gs_stScheduler.qwSpendProcessorTimeInIdleTask += TASK_PROCESSORTIME;
     }    
-    
+
+    pstRunningTask->execCount += TASK_PROCESSORTIME;
+
     // 태스크 종료 플래그가 설정된 경우, 콘텍스트를 저장하지 않고 대기 리스트에만 삽입
     if( pstRunningTask->qwFlags & TASK_FLAGS_ENDTASK )
     {    
         kAddListToTail( &( gs_stScheduler.stWaitList ), pstRunningTask );
     }
+    
     // 태스크가 종료되지 않으면 IST에 있는 콘텍스트를 복사하고, 현재 태스크를 준비 리스트로
     // 옮김
     else
@@ -609,7 +616,6 @@ BOOL kScheduleInInterrupt( void )
     // 전환해서 실행할 태스크를 Running Task로 설정하고 콘텍스트를 IST에 복사해서
     // 자동으로 태스크 전환이 일어나도록 함
     kMemCpy( pcContextAddress, &( pstNextTask->stContext ), sizeof( CONTEXT ) );
-    pstNextTask->execCount += TASK_PROCESSORTIME;
     
     // 프로세서 사용 시간을 업데이트
     gs_stScheduler.iProcessorTime = TASK_PROCESSORTIME;
@@ -969,4 +975,9 @@ void kHaltProcessorByLoad( void )
     {
         kHlt();
     }
+}
+
+int getSchedulerReadyListCount()
+{
+    return kGetListCount(&( gs_stScheduler.vstReadyList ));
 }

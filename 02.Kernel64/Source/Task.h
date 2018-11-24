@@ -226,6 +226,8 @@ QWORD kGetProcessorLoad( void );
 static TCB* kGetProcessByThread( TCB* pstThread );
 static QWORD kAllTicketNum();
 
+int getSchedulerReadyListCount();
+
 //==============================================================================
 //  유휴 태스크 관련
 //==============================================================================

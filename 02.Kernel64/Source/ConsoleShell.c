@@ -1163,6 +1163,7 @@ static void kCheckTask( const char* pcParameterBuffer )
     while(1)
     {
         kPrintf( "=========== Task Total Count [%d] ===========\n", kGetTaskCount() );
+        kPrintf( " ReadyListCount: %d\n", getSchedulerReadyListCount());
 
             for( int i = 0 ; i < TASK_MAXCOUNT ; i++ )
             {
@@ -1176,6 +1177,8 @@ static void kCheckTask( const char* pcParameterBuffer )
                     kPrintf( "    Parent PID[0x%Q], Memory Address[0x%Q], Size[0x%Q]\n",
                             pstTCB->qwParentProcessID, pstTCB->pvMemoryAddress, pstTCB->qwMemorySize );
                     kPrintf( "    Ticket[%d], Schedule Time[%d]\n", pstTCB->ticket, pstTCB->execCount);
+
+                    //pstTCB->execCount = 0;
                 }
             }
 
