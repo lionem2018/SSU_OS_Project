@@ -787,6 +787,9 @@ static void kCreateTestTask( const char* pcParameterBuffer )
             }
         }
         kPrintf( "Task2 %d Created\n", i );
+
+        //kCheckTask(pcParameterBuffer);
+
         break;
     }    
 }   
@@ -1160,10 +1163,18 @@ static void kCheckTask( const char* pcParameterBuffer )
     TCB* pstTCB;
     int lastTimeCount = 0, currentTimeCount = 0;
 
+    kCreateTestTask("2 5");
+    kChangeTaskPriority("0x300000002 0");
+    kChangeTaskPriority("0x400000003 1");
+    kChangeTaskPriority("0x500000004 2");
+    kChangeTaskPriority("0x600000005 3");
+    kChangeTaskPriority("0x700000006 4");
+
     while(1)
     {
         kPrintf( "=========== Task Total Count [%d] ===========\n", kGetTaskCount() );
-        kPrintf( " ReadyListCount: %d\n", getSchedulerReadyListCount());
+        kPrintf( " ReadyListCount: %d", getSchedulerReadyListCount() );
+        kPrintf( " whole Tick Count: %d\n", kGetTickCount() );
 
             for( int i = 0 ; i < TASK_MAXCOUNT ; i++ )
             {
@@ -1182,6 +1193,6 @@ static void kCheckTask( const char* pcParameterBuffer )
                 }
             }
 
-        kSleep( 1000 );
+        kSleep( 2000 );
     }
 }
