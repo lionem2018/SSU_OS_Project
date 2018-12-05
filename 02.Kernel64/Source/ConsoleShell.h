@@ -98,4 +98,6 @@ static void kShowDyanmicMemoryInformation( const char* pcParameterBuffer );
 static void kTestSequentialAllocation( const char* pcParameterBuffer );
 static void kTestRandomAllocation( const char* pcParameterBuffer );
 static void kRandomAllocationTask( void );
+
+static void kTestFreeList( const char* pcParameterBuffer );
 #endif /*__CONSOLESHELL_H__*/

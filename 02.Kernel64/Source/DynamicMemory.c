@@ -8,8 +8,10 @@
 #include "DynamicMemory.h"
 #include "Utility.h"
 #include "Task.h"
+#include "List.h"
 
 static DYNAMICMEMORY gs_stDynamicMemory;
+static LIST freeList;
 
 /**
  *  동적 메모리 영역 초기화    
@@ -484,4 +486,50 @@ void kGetDynamicMemoryInformation( QWORD* pqwDynamicMemoryStartAddress,
 DYNAMICMEMORY* kGetDynamicMemoryManager( void )
 {
     return &gs_stDynamicMemory;
+}
+
+void kInitializeFreeList(void* ptr,int size){
+    kInitializeList(&freeList);
+    LISTLINK* firstChunk = (LISTLINK*)ptr;
+    firstChunk->qwID = size-16;
+    kAddListToHeader(&freeList, firstChunk);
+}
+
+//free + first chunk
+void kAddFreeChunk(QWORD* ptr){
+    LISTLINK* newFreeChunk=(int)ptr-16;
+
+    kAddListToHeader(&freeList, newFreeChunk);
+}
+
+void* kAllocateChunk(int reqSize){
+    LISTLINK* preChunk;
+    for(LISTLINK* i=(LISTLINK*)(freeList.pvHeader);i!=NULL;i=i->pvNext){   //first-fit for fast speed
+        LISTLINK* nowChunk;
+        if( reqSize+16 <= i->qwID ){
+            if(i==(LISTLINK*)(freeList.pvHeader)){
+                freeList.pvHeader=(int)i+16+reqSize;  //put left chunk after allocated chunk
+                nowChunk = (LISTLINK*)freeList.pvHeader;
+            }
+            else{
+                preChunk->pvNext = (int)i+16+reqSize;   //difficulty: in case of pointer operation plus minus -> automatically multiply struct size
+                nowChunk = (LISTLINK*)preChunk->pvNext;
+            }
+            nowChunk->qwID = i->qwID -16 -reqSize;  //left chunk size
+            nowChunk->pvNext=i->pvNext;
+
+            i->pvNext=1234567; //allocated chunk magic number
+            i->qwID=reqSize;
+
+            
+            return (void*)((int)i+16);
+        }
+        preChunk=i;
+    }
+}
+
+void kShowCurrentFreeList(){
+    for(LISTLINK* i=(LISTLINK*)(freeList.pvHeader);i!=NULL;i=i->pvNext){
+        kPrintf("\nsize: %d address: %d\n",i->qwID, i);
+    }
 }

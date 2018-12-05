@@ -24,9 +24,10 @@
 typedef struct kListLinkStruct
 {
     // 다음 데이터의 어드레스와 데이터를 구분하기 위한 ID
-    void* pvNext;  //LISTLINK
-    QWORD qwID;
+    void* pvNext;  //LISTLINK //8
+    QWORD qwID;  //8
 } LISTLINK;
+
 
 /*
 // 리스트에 사용할 데이터를 정의하는 예

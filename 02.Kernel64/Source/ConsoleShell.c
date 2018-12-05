@@ -45,7 +45,8 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         { "showfairness", "Show fairness rate of two task", kShowFairness},          
         { "dynamicmeminfo", "Show Dyanmic Memory Information", kShowDyanmicMemoryInformation },
         { "testseqalloc", "Test Sequential Allocation & Free", kTestSequentialAllocation },
-        { "testranalloc", "Test Random Allocation & Free", kTestRandomAllocation }
+        { "testranalloc", "Test Random Allocation & Free", kTestRandomAllocation },
+        { "malloc", "Test Allocation & Free", kTestFreeList }
 };                                     
 
 //==============================================================================
@@ -1293,6 +1294,87 @@ static void kTestSequentialAllocation( const char* pcParameterBuffer )
         kPrintf( "\n" );
     }
     kPrintf( "Test Complete~!!!\n" );
+}
+
+static void kTestFreeList( const char* pcParameterBuffer )
+{
+    DYNAMICMEMORY* pstMemory;
+    long i, j, k;
+    QWORD* bigMemoryChunk;
+    QWORD* memoryChunk;
+    
+    
+    pstMemory = kGetDynamicMemoryManager();
+
+    bigMemoryChunk = kAllocateMemory( DYNAMICMEMORY_MIN_SIZE * 4);
+
+    kInitializeFreeList(memoryChunk,DYNAMICMEMORY_MIN_SIZE * 4);
+
+    kShowCurrentFreeList();
+
+    kPrintf( "============ Dynamic Memory Test ============\n" );
+    
+    memoryChunk = kAllocateChunk(8*8);
+    
+    for( k = 0 ; k < 8 ; k++ )
+    {
+        memoryChunk[ k ] = k;
+    }
+            
+    for( k = 0 ; k < 8 ; k++ )
+    {
+        if( memoryChunk[ k ] != k )
+        {
+            kPrintf( "\nCompare Fail\n" );
+            return ;
+        }
+    }
+
+    kShowCurrentFreeList();
+
+    kPrintf( "============ Free Memory Test ============\n" );
+
+    kAddFreeChunk(memoryChunk);
+
+    kShowCurrentFreeList();
+    
+
+    // int wow;
+    //  for(wow=0 ; wow<3 ; wow++){
+
+        
+    //     srand(kGetTickCount());
+    //     QWORD testLen = rand()%10+1;
+    //     //kPrintf("===== %d case======%d\n",i,testLen);
+
+    // memoryChunk = kAllocateChunk(testLen*8);
+    
+    // for( k = 0 ; k < testLen ; k++ )
+    // {
+    //     memoryChunk[ k ] = k;
+    // }
+            
+    // for( k = 0 ; k < testLen ; k++ )
+    // {
+    //     if( memoryChunk[ k ] != k )
+    //     {
+    //         kPrintf( "\nCompare Fail\n" );
+    //         return ;
+    //     }
+    // }
+
+    // kShowCurrentFreeList();
+
+    // kPrintf( "============ Free Memory Test ============\n" );
+
+    // kAddFreeChunk(memoryChunk);
+
+    // kShowCurrentFreeList();
+    // }
+
+
+
+    //kPrintf( "Test Complete~!!!\n" );
 }
 
 /**
