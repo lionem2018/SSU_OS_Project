@@ -65,7 +65,9 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         { "testfileio", "Test File I/O Function", kTestFileIO },
         { "testperformance", "Test File Read/WritePerformance", kTestPerformance },
         { "flush", "Flush File System Cache", kFlushCache },
-};                                     
+};                                
+
+char currentUserID [ 16 ];
 
 //==============================================================================
 //  占쏙옙占쏙옙 占쏙옙占쏙옙 占쏙옙占쏙옙占싹댐옙 占쌘듸옙
@@ -1685,6 +1687,25 @@ static void kMountHDD( const char* pcParameterBuffer )
         kPrintf( "HDD Mount Fail\n" );
         return ;
     }
+
+    kMemCpy( currentUserID, "root", 5 );
+
+    // 파일 생성
+    FILE* fp = fopen( ".userinfo", "w", currentUserID);
+    if( fp == NULL )
+    {
+        kPrintf( "User Info Reset Fail\n" );
+        return ;
+    }
+      
+    if( fwrite( "root/", 1, 5, fp ) != 5 )
+    {
+        kPrintf( "File Wirte Fail\n" );
+        fclose( fp );
+        return ;
+    }
+
+    fclose( fp );
     kPrintf( "HDD Mount Success\n" );
 }
 
@@ -1742,7 +1763,7 @@ static void kCreateFileInRootDirectory( const char* pcParameterBuffer )
         return ;
     }
 
-    pstFile = fopen( vcFileName, "w" );
+    pstFile = fopen( vcFileName, "w", currentUserID);
     if( pstFile == NULL )
     {
         kPrintf( "File Create Fail\n" );
@@ -1851,6 +1872,48 @@ static void kShowRootDirectory( const char* pcParameterBuffer )
         // 전부 공백으로 초기화 한 후 각 위치에 값을 대입
         kMemSet( vcBuffer, ' ', sizeof( vcBuffer ) - 1 );
         vcBuffer[ sizeof( vcBuffer ) - 1 ] = '\0';
+
+        //////////////////////////////////////////////////////////////////////////////////////////////
+        if ( pstEntry->bPermission & 0x20 )
+            kSPrintf( vcTempValue, "r" );
+        else
+            kSPrintf( vcTempValue, "-" );
+
+        if ( pstEntry->bPermission & 0x10 )
+            kSPrintf( vcTempValue+1, "w" );
+        else
+            kSPrintf( vcTempValue+1, "-" );
+
+        if ( pstEntry->bPermission & 0x08 )
+            kSPrintf( vcTempValue+2, "x" );
+        else
+            kSPrintf( vcTempValue+2, "-" );
+
+        if ( pstEntry->bPermission & 0x04 )
+            kSPrintf( vcTempValue+3, "r" );
+        else
+            kSPrintf( vcTempValue+3, "-" );
+
+        if ( pstEntry->bPermission & 0x02 )
+            kSPrintf( vcTempValue+4, "w" );
+        else
+            kSPrintf( vcTempValue+4, "-" );
+
+        if ( pstEntry->bPermission & 0x01 )
+            kSPrintf( vcTempValue+5, "x" );
+        else
+            kSPrintf( vcTempValue+5, "-" );
+
+        kMemCpy(vcBuffer, vcTempValue, kStrLen( vcTempValue ) );
+
+        kMemCpy(vcBuffer+10, pstEntry->ownUserID, kStrLen(pstEntry->ownUserID)+1 );
+
+        kPrintf( "%s\n", vcBuffer );
+
+        kMemSet( vcBuffer, ' ', sizeof( vcBuffer ) - 1 );
+        vcBuffer[ sizeof( vcBuffer ) - 1 ] = '\0';
+
+        /////////////////////////////////////////////////////////////////////////////////////////////
         
         // 파일 이름 삽입
         kMemCpy( vcBuffer, pstEntry->d_name, 
@@ -1863,7 +1926,7 @@ static void kShowRootDirectory( const char* pcParameterBuffer )
         // 파일의 시작 클러스터 삽입
         kSPrintf( vcTempValue, "0x%X Cluster", pstEntry->dwStartClusterIndex );
         kMemCpy( vcBuffer + 55, vcTempValue, kStrLen( vcTempValue ) + 1 );
-        kPrintf( "    %s\n", vcBuffer );
+        kPrintf( "   %s\n", vcBuffer );
 
         if( ( iCount != 0 ) && ( ( iCount % 20 ) == 0 ) )
         {
@@ -1899,6 +1962,7 @@ static void kWriteDataToFile( const char* pcParameterBuffer )
 {
     PARAMETERLIST stList;
     char vcFileName[ 50 ];
+    char userName[ 16 ];
     int iLength;
     FILE* fp;
     int iEnterCount;
@@ -1913,9 +1977,12 @@ static void kWriteDataToFile( const char* pcParameterBuffer )
         kPrintf( "Too Long or Too Short File Name\n" );
         return ;
     }
+
+    kMemCpy(userName, currentUserID, kStrLen( currentUserID ));
+    userName[ kStrLen(currentUserID) ] = '\0';
     
     // 파일 생성
-    fp = fopen( vcFileName, "w" );
+    fp = fopen( vcFileName, "w", userName);
     if( fp == NULL )
     {
         kPrintf( "%s File Open Fail\n", vcFileName );
@@ -1961,6 +2028,7 @@ static void kReadDataFromFile( const char* pcParameterBuffer )
 {
     PARAMETERLIST stList;
     char vcFileName[ 50 ];
+    char userName [ 16 ];
     int iLength;
     FILE* fp;
     int iEnterCount;
@@ -1975,9 +2043,12 @@ static void kReadDataFromFile( const char* pcParameterBuffer )
         kPrintf( "Too Long or Too Short File Name\n" );
         return ;
     }
+
+    kMemCpy(userName, currentUserID, kStrLen( currentUserID ));
+    userName[ kStrLen(currentUserID) ] = '\0';
     
     // 파일 생성
-    fp = fopen( vcFileName, "r" );
+    fp = fopen( vcFileName, "r", currentUserID);
     if( fp == NULL )
     {
         kPrintf( "%s File Open Fail\n", vcFileName );
@@ -2048,7 +2119,7 @@ static void kTestFileIO( const char* pcParameterBuffer )
     //==========================================================================
     kPrintf( "1. File Open Fail Test..." );
     // r 옵션은 파일을 생성하지 않으므로, 테스트 파일이 없는 경우 NULL이 되어야 함
-    pstFile = fopen( "testfileio.bin", "r" );
+    pstFile = fopen( "testfileio.bin", "r", currentUserID);
     if( pstFile == NULL )
     {
         kPrintf( "[Pass]\n" );
@@ -2064,7 +2135,7 @@ static void kTestFileIO( const char* pcParameterBuffer )
     //==========================================================================
     kPrintf( "2. File Create Test..." );
     // w 옵션은 파일을 생성하므로, 정상적으로 핸들이 반환되어야함
-    pstFile = fopen( "testfileio.bin", "w" );
+    pstFile = fopen( "testfileio.bin", "w", currentUserID);
     if( pstFile != NULL )
     {
         kPrintf( "[Pass]\n" );
@@ -2348,7 +2419,7 @@ static void kTestPerformance( const char* pcParameterBuffer )
 
     // 기존의 테스트 파일을 제거하고 새로 만듦
     remove( "performance.txt" );
-    pstFile = fopen( "performance.txt", "w" );
+    pstFile = fopen( "performance.txt", "w", currentUserID);
     if( pstFile == NULL )
     {
         kPrintf( "File Open Fail\n" );
@@ -2405,7 +2476,7 @@ static void kTestPerformance( const char* pcParameterBuffer )
     
     // 기존의 테스트 파일을 제거하고 새로 만듦
     remove( "performance.txt" );
-    pstFile = fopen( "performance.txt", "w" );
+    pstFile = fopen( "performance.txt", "w", currentUserID);
     if( pstFile == NULL )
     {
         kPrintf( "File Open Fail\n" );

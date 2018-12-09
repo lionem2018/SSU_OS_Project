@@ -5,6 +5,8 @@ FileSystem.o: ../Source/FileSystem.c ../Source/FileSystem.h \
  ../Source/Types.h ../Source/Synchronization.h ../Source/HardDisk.h \
  ../Source/CacheManager.h ../Source/DynamicMemory.h ../Source/Task.h \
  ../Source/List.h ../Source/Utility.h ../Source/RAMDisk.h
+User.o: ../Source/User.c ../Source/User.h ../Source/Types.h \
+ ../Source/Utility.h
 Main.o: ../Source/Main.c ../Source/Types.h ../Source/Keyboard.h \
  ../Source/Descriptor.h ../Source/PIC.h ../Source/Console.h \
  ../Source/ConsoleShell.h ../Source/Task.h ../Source/List.h \

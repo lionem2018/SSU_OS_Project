@@ -913,7 +913,7 @@ static void kFreeFileDirectoryHandle( FILE* pstFile )
  *  파일을 생성
  */
 static BOOL kCreateFile( const char* pcFileName, DIRECTORYENTRY* pstEntry, 
-        int* piDirectoryEntryIndex )
+        int* piDirectoryEntryIndex, const char* owner )
 {
     DWORD dwCluster;
     
@@ -938,6 +938,9 @@ static BOOL kCreateFile( const char* pcFileName, DIRECTORYENTRY* pstEntry,
     kMemCpy( pstEntry->vcFileName, pcFileName, kStrLen( pcFileName ) + 1 );
     pstEntry->dwStartClusterIndex = dwCluster;
     pstEntry->dwFileSize = 0;
+    kMemCpy( pstEntry->ownUserID, owner, kStrLen(owner) + 1 );
+    pstEntry->ownUserID[kStrLen(owner)] = '\0';
+    pstEntry->bPermission = 0x34;
     
     // 디렉터리 엔트리를 등록
     if( kSetDirectoryEntryData( *piDirectoryEntryIndex, pstEntry ) == FALSE )
@@ -986,7 +989,7 @@ static BOOL kFreeClusterUntilEnd( DWORD dwClusterIndex )
 /**
  *  파일을 열거나 생성 
  */
-FILE* kOpenFile( const char* pcFileName, const char* pcMode )
+FILE* kOpenFile( const char* pcFileName, const char* pcMode, const char* currentUser )
 {
     DIRECTORYENTRY stEntry;
     int iDirectoryEntryOffset;
@@ -1020,7 +1023,7 @@ FILE* kOpenFile( const char* pcFileName, const char* pcMode )
         }
         
         // 나머지 옵션들은 파일을 생성
-        if( kCreateFile( pcFileName, &stEntry, &iDirectoryEntryOffset ) == FALSE )
+        if( kCreateFile( pcFileName, &stEntry, &iDirectoryEntryOffset, currentUser ) == FALSE )
         {
             // 동기화
             kUnlock( &( gs_stFileSystemManager.stMutex ) );

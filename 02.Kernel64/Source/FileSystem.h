@@ -137,6 +137,12 @@ typedef struct kDirectoryEntryStruct
     DWORD dwFileSize;
     // 파일이 시작하는 클러스터 인덱스
     DWORD dwStartClusterIndex;
+
+    // file owner name
+    char ownUserID[ 16 ];
+    // permission
+    BYTE bPermission;
+
 } DIRECTORYENTRY;
 
 #pragma pack( pop )
@@ -254,7 +260,7 @@ static CACHEBUFFER* kAllocateCacheBufferWithFlush( int iCacheTableIndex );
 BOOL kFlushFileSystemCache( void );
 
 //  고수준 함수(High Level Function)
-FILE* kOpenFile( const char* pcFileName, const char* pcMode );
+FILE* kOpenFile( const char* pcFileName, const char* pcMode, const char* currentUser );
 DWORD kReadFile( void* pvBuffer, DWORD dwSize, DWORD dwCount, FILE* pstFile );
 DWORD kWriteFile( const void* pvBuffer, DWORD dwSize, DWORD dwCount, FILE* pstFile );
 int kSeekFile( FILE* pstFile, int iOffset, int iOrigin );
@@ -270,7 +276,7 @@ BOOL kIsFileOpened( const DIRECTORYENTRY* pstEntry );
 static void* kAllocateFileDirectoryHandle( void );
 static void kFreeFileDirectoryHandle( FILE* pstFile );
 static BOOL kCreateFile( const char* pcFileName, DIRECTORYENTRY* pstEntry, 
-        int* piDirectoryEntryIndex );
+        int* piDirectoryEntryIndex, const char* owner );
 static BOOL kFreeClusterUntilEnd( DWORD dwClusterIndex );
 static BOOL kUpdateDirectoryEntry( FILEHANDLE* pstFileHandle );
 
