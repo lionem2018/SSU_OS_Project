@@ -56,7 +56,7 @@ Disk.img: 00.BootLoader/BootLoader.bin 01.Kernel32/Kernel32.bin 02.Kernel64/Kern
 	@echo 
 
 run:
-	qemu-system-x86_64 -L . -fda Disk.img -m 64 -localtime -M pc -rtc base=localtime 
+	qemu-system-x86_64 -L . -fda Disk.img -hda HDD.img -boot a -m 64 -localtime -M pc -rtc base=localtime 
 	
 clean:
 	make -C 00.BootLoader clean

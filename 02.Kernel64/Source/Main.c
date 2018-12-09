@@ -15,6 +15,8 @@
 #include "Task.h"
 #include "PIT.h"
 #include "DynamicMemory.h"
+#include "HardDisk.h"
+#include "FileSystem.h"
 
 // ï¿½Ô¼ï¿½ ï¿½ï¿½ï¿½ï¿½
 void kPrintString( int iX, int iY, const char* pcString );
@@ -101,6 +103,20 @@ void Main( void )
     kEnableInterrupt();
     kSetCursor( 45, iCursorY++ );
     kPrintf( "Pass\n" );
+
+// ÆÄÀÏ ½Ã½ºÅÛÀ» ÃÊ±âÈ­
+    kPrintf( "File System Initialize......................[    ]" );
+    if( kInitializeFileSystem() == TRUE )
+    {
+        kSetCursor( 45, iCursorY++ );
+        kPrintf( "Pass\n" );
+    }
+    else
+    {
+        kSetCursor( 45, iCursorY++ );
+        kPrintf( "Fail\n" );
+    }
+    
 
     // À¯ÈÞ ÅÂ½ºÅ©¸¦ ½Ã½ºÅÛ ½º·¹µå·Î »ý¼ºÇÏ°í ¼ÐÀ» ½ÃÀÛ
     kCreateTask( TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD | TASK_FLAGS_SYSTEM | TASK_FLAGS_IDLE, 0, 0, 

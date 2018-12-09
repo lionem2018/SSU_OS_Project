@@ -15,6 +15,7 @@
 #include "Utility.h"
 #include "Task.h"
 #include "Descriptor.h"
+#include "HardDisk.h"
 /**
  *  怨듯넻?쑝濡? ?궗?슜?븯?뒗 ?삁?쇅 ?빖?뱾?윭
  */
@@ -261,3 +262,31 @@ void kTimerHandler(int iVectorNumber){
     }
     
 }
+
+/**
+ *  하드 디스크에서 발생하는 인터럽트의 핸들러
+ */
+void kHDDHandler( int iVectorNumber )
+{
+    char vcBuffer[] = "[INT:  , ]";
+    static int g_iHDDInterruptCount = 0;
+    BYTE bTemp;
+
+    //=========================================================================
+    // 인터럽트가 발생했음을 알리려고 메시지를 출력하는 부분
+    // 인터럽트 벡터를 화면 왼쪽 위에 2자리 정수로 출력
+    vcBuffer[ 5 ] = '0' + iVectorNumber / 10;
+    vcBuffer[ 6 ] = '0' + iVectorNumber % 10;
+    // 발생한 횟수 출력
+    vcBuffer[ 8 ] = '0' + g_iHDDInterruptCount;
+    g_iHDDInterruptCount = ( g_iHDDInterruptCount + 1 ) % 10;
+    // 왼쪽 위에 있는 메시지와 겹치지 않도록 (10, 0)에 출력
+    kPrintStringXY( 10, 0, vcBuffer );
+    //=========================================================================
+
+    // 첫 번째 PATA 포트의 인터럽트 발생 여부를 TRUE로 설정
+    kSetHDDInterruptFlag( TRUE, TRUE );
+    // EOI 전송
+    kSendEOIToPIC( iVectorNumber - PIC_IRQSTARTVECTOR );
+}
+

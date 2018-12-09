@@ -10,7 +10,7 @@ SECTION .text       ; text ����(���׸�Ʈ)�� ����
 
 ; �ܺο��� ���ǵ� �Լ��� �� �� �ֵ��� ������(Import)
 extern kCommonExceptionHandler, kCommonInterruptHandler, kKeyboardHandler, kPageFaultExceptionHandler,kTimerHandler
-extern kTimerHandler
+extern kTimerHandler, kDeviceNotAvailableHandler, kHDDHandler
 
 ; C ����? ȣ���� �� �ֵ��� �̸��� ������(Export)
 ; ����(Exception) ó���� ���� ISR
@@ -505,7 +505,7 @@ kISRHDD1:
 
     ; �ڵ鷯�� ���ͷ�Ʈ ��ȣ�� �����ϰ� �ڵ鷯 ȣ��
     mov rdi, 46
-    call kCommonInterruptHandler
+    call kHDDHandler
 
     KLOADCONTEXT    ; ���ؽ�Ʈ�� ����
     iretq           ; ���ͷ�Ʈ ó���� �Ϸ��ϰ� ������ �����ϴ� �ڵ��? ����
@@ -516,7 +516,7 @@ kISRHDD2:
 
     ; �ڵ鷯�� ���ͷ�Ʈ ��ȣ�� �����ϰ� �ڵ鷯 ȣ��
     mov rdi, 47
-    call kCommonInterruptHandler
+    call kHDDHandler
 
     KLOADCONTEXT    ; ���ؽ�Ʈ�� ����
     iretq           ; ���ͷ�Ʈ ó���� �Ϸ��ϰ� ������ �����ϴ� �ڵ��? ����
