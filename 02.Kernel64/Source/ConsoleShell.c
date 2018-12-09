@@ -1310,9 +1310,11 @@ static void kTestFreeList( const char* pcParameterBuffer )
 
     kInitializeFreeList(memoryChunk,DYNAMICMEMORY_MIN_SIZE * 4);
 
+    kPrintf( "============ Free list initialized ============\n" );
+    
     kShowCurrentFreeList();
 
-    kPrintf( "============ Dynamic Memory Test ============\n" );
+    kPrintf( "============ 64bit Memory Allocation ============\n" );
     
     memoryChunk = kAllocateChunk(8*8);
     
@@ -1337,44 +1339,7 @@ static void kTestFreeList( const char* pcParameterBuffer )
     kAddFreeChunk(memoryChunk);
 
     kShowCurrentFreeList();
-    
 
-    // int wow;
-    //  for(wow=0 ; wow<3 ; wow++){
-
-        
-    //     srand(kGetTickCount());
-    //     QWORD testLen = rand()%10+1;
-    //     //kPrintf("===== %d case======%d\n",i,testLen);
-
-    // memoryChunk = kAllocateChunk(testLen*8);
-    
-    // for( k = 0 ; k < testLen ; k++ )
-    // {
-    //     memoryChunk[ k ] = k;
-    // }
-            
-    // for( k = 0 ; k < testLen ; k++ )
-    // {
-    //     if( memoryChunk[ k ] != k )
-    //     {
-    //         kPrintf( "\nCompare Fail\n" );
-    //         return ;
-    //     }
-    // }
-
-    // kShowCurrentFreeList();
-
-    // kPrintf( "============ Free Memory Test ============\n" );
-
-    // kAddFreeChunk(memoryChunk);
-
-    // kShowCurrentFreeList();
-    // }
-
-
-
-    //kPrintf( "Test Complete~!!!\n" );
 }
 
 /**
