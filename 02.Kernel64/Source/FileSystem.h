@@ -272,6 +272,9 @@ void kRewindDirectory( DIR* pstDirectory );
 int kCloseDirectory( DIR* pstDirectory );
 BOOL kWriteZero( FILE* pstFile, DWORD dwCount );
 BOOL kIsFileOpened( const DIRECTORYENTRY* pstEntry );
+///////////////////////////////////////////////
+BOOL kChangePermissionFile( const char* pcFileName, int permission);
+///////////////////////////////////////////////
 
 static void* kAllocateFileDirectoryHandle( void );
 static void kFreeFileDirectoryHandle( FILE* pstFile );

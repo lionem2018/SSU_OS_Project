@@ -1883,3 +1883,52 @@ BOOL kFlushFileSystemCache( void )
     kUnlock( &( gs_stFileSystemManager.stMutex ) );
     return TRUE;
 }
+
+BOOL kChangePermissionFile( const char* pcFileName, int permission){
+    DIRECTORYENTRY stEntry;
+    int iDirectoryEntryOffset;
+    int iFileNameLength;
+
+    // 파일 이름 검사
+    iFileNameLength = kStrLen( pcFileName );
+    if( ( iFileNameLength > ( sizeof( stEntry.vcFileName ) - 1 ) ) || 
+        ( iFileNameLength == 0 ) )
+    {
+        return FALSE;
+    }
+    
+    // 동기화
+    kLock( &( gs_stFileSystemManager.stMutex ) );
+    
+    // 파일이 존재하는가 확인
+    iDirectoryEntryOffset = kFindDirectoryEntry( pcFileName, &stEntry );
+    if( iDirectoryEntryOffset == -1 ) 
+    { 
+        // 동기화
+        kUnlock( &( gs_stFileSystemManager.stMutex ) );
+        return FALSE;
+    }
+
+    stEntry.bPermission = 0x00;
+
+    if ( permission & 0x20 )
+        stEntry.bPermission |= 0x20;
+    
+    if ( permission & 0x10 )
+        stEntry.bPermission |= 0x10;
+    
+    if ( permission & 0x08 )
+        stEntry.bPermission |= 0x08;
+    
+    if ( permission & 0x04 )
+        stEntry.bPermission |= 0x04;
+    
+    if ( permission & 0x02 )
+        stEntry.bPermission |= 0x02;
+    
+    if ( permission & 0x01 )
+        stEntry.bPermission |= 0x01;
+
+    kUnlock( &( gs_stFileSystemManager.stMutex ) );
+    return TRUE;
+}
