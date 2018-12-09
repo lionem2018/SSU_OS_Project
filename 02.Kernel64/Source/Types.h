@@ -1,0 +1,53 @@
+/**
+ *  file    Types.h
+ *  date    2008/12/14
+ *  author  kkamagui 
+ *          Copyright(c)2008 All rights reserved by kkamagui
+ *  brief   Ä¿ï¿½Î¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿? ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+ */
+
+#ifndef __TYPES_H__
+#define __TYPES_H__
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// ï¿½ï¿½Å©ï¿½ï¿½
+//
+////////////////////////////////////////////////////////////////////////////////
+// ï¿½âº» Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½
+#define BYTE    unsigned char
+#define WORD    unsigned short
+#define DWORD   unsigned int
+#define QWORD   unsigned long
+#define BOOL    unsigned char
+
+#define TRUE    1
+#define FALSE   0
+#define NULL    0
+
+// stddef.h Çì´õ¿¡ Æ÷ÇÔµÈ offsetof() ¸ÅÅ©·ÎÀÇ ³»¿ë
+#define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// ï¿½ï¿½ï¿½ï¿½Ã¼
+//
+////////////////////////////////////////////////////////////////////////////////
+#pragma pack( push, 1 )
+
+// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿? ï¿½ï¿½ ï¿½Ø½ï¿½Æ® ï¿½ï¿½ï¿? È­ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ú·á±¸ï¿½ï¿½
+typedef struct kCharactorStruct
+{
+    BYTE bCharactor;
+    BYTE bAttribute;
+} CHARACTER;
+
+typedef struct kPageTableEntryStruct
+{
+    DWORD dwAttributeAndLowerBaseAddress; 
+    DWORD dwUpperBaseAddressAndEXB;
+} PDENTRY, PML4TENTRY, PDPTENTRY, PTENTRY;
+
+#pragma pack( pop )
+
+#endif /*__TYPES_H__*/
