@@ -940,8 +940,8 @@ static BOOL kCreateFile( const char* pcFileName, DIRECTORYENTRY* pstEntry,
     pstEntry->dwFileSize = 0;
     kMemCpy( pstEntry->ownUserID, owner, kStrLen(owner) + 1 );
     pstEntry->ownUserID[kStrLen(owner)] = '\0';
-    pstEntry->bPermission = 0x34;
-    
+    pstEntry->bPermission = DEFAULT_PERMISSION;
+
     // 디렉터리 엔트리를 등록
     if( kSetDirectoryEntryData( *piDirectoryEntryIndex, pstEntry ) == FALSE )
     {
@@ -949,6 +949,7 @@ static BOOL kCreateFile( const char* pcFileName, DIRECTORYENTRY* pstEntry,
         kSetClusterLinkData( dwCluster, FILESYSTEM_FREECLUSTER );
         return FALSE;
     }
+
     return TRUE;
 }
 
@@ -1884,10 +1885,12 @@ BOOL kFlushFileSystemCache( void )
     return TRUE;
 }
 
-BOOL kChangePermissionFile( const char* pcFileName, int permission){
+BOOL kChangeFilePermission( const char* pcFileName, int permission){
     DIRECTORYENTRY stEntry;
     int iDirectoryEntryOffset;
     int iFileNameLength;
+    int ownPermission;
+    int otherPermission;
 
     // 파일 이름 검사
     iFileNameLength = kStrLen( pcFileName );
@@ -1909,26 +1912,49 @@ BOOL kChangePermissionFile( const char* pcFileName, int permission){
         return FALSE;
     }
 
+    ownPermission = permission / 10;
+    otherPermission = permission % 10;
+
     stEntry.bPermission = 0x00;
 
-    if ( permission & 0x20 )
+    if ( ownPermission >= 4 )
+    {
         stEntry.bPermission |= 0x20;
+        ownPermission -= 4;
+    }
     
-    if ( permission & 0x10 )
+    if ( ownPermission >= 2 )
+    {
         stEntry.bPermission |= 0x10;
+        ownPermission -= 2;
+    }
     
-    if ( permission & 0x08 )
+    if ( ownPermission >= 1 )
         stEntry.bPermission |= 0x08;
     
-    if ( permission & 0x04 )
+    if ( otherPermission >= 4 )
+    {
         stEntry.bPermission |= 0x04;
+        otherPermission -= 4;
+    }
     
-    if ( permission & 0x02 )
+    if ( otherPermission >= 2 )
+    {
         stEntry.bPermission |= 0x02;
+        otherPermission -= 2;
+    }
     
-    if ( permission & 0x01 )
+    if ( otherPermission >= 1 )
         stEntry.bPermission |= 0x01;
 
+    if( kSetDirectoryEntryData( iDirectoryEntryOffset, &stEntry ) == FALSE )
+    {
+        // 동기화
+        kUnlock( &( gs_stFileSystemManager.stMutex ) );
+        return FALSE;
+    }
+    
+    // 동기화
     kUnlock( &( gs_stFileSystemManager.stMutex ) );
     return TRUE;
 }

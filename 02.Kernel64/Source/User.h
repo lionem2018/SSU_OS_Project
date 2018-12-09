@@ -7,9 +7,10 @@ typedef struct kUserStruct
 {
     char userID [ 16 ];
     char userPasswd [ 16 ];
-    
+
 } USERINFO;
 
+static BOOL readUserInfo();
 static BOOL addUser( const char* userID, const char* userPasswd );
 static BOOL deleteUser( const char* userID, const char* userPasswd );
 static BOOL changeUser( const char* userID, const char* userPasswd);

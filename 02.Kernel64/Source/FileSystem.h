@@ -49,6 +49,9 @@
 #define FILESYSTEM_SEEK_CUR                 1
 #define FILESYSTEM_SEEK_END                 2
 
+//default permission
+#define DEFAULT_PERMISSION    0x34
+
 // 하드 디스크 제어에 관련된 함수 포인터 타입 정의
 typedef BOOL (* fReadHDDInformation ) ( BOOL bPrimary, BOOL bMaster, 
         HDDINFORMATION* pstHDDInformation );
@@ -273,7 +276,7 @@ int kCloseDirectory( DIR* pstDirectory );
 BOOL kWriteZero( FILE* pstFile, DWORD dwCount );
 BOOL kIsFileOpened( const DIRECTORYENTRY* pstEntry );
 ///////////////////////////////////////////////
-BOOL kChangePermissionFile( const char* pcFileName, int permission);
+BOOL kChangeFilePermission( const char* pcFileName, int permission);
 ///////////////////////////////////////////////
 
 static void* kAllocateFileDirectoryHandle( void );
