@@ -67,7 +67,8 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         { "testperformance", "Test File Read/WritePerformance", kTestPerformance },
         { "flush", "Flush File System Cache", kFlushCache },
         { "adduser", "Add User", kAddUser },
-        { "chuser", "Change User", kChangeUser }
+        { "chuser", "Change User", kChangeUser },
+        { "chmod", "Change File Permission", kChangePermission}
 };                                
 
 char currentUserID [ 16 ];
@@ -2129,6 +2130,7 @@ static void kReadDataFromFile( const char* pcParameterBuffer )
     kMemCpy(userName, currentUserID, kStrLen( currentUserID ));
     userName[ kStrLen(currentUserID) ] = '\0';
     
+    //if(){
     // 파일 생성
     fp = fopen( vcFileName, "r", currentUserID);
     if( fp == NULL )
@@ -2136,6 +2138,7 @@ static void kReadDataFromFile( const char* pcParameterBuffer )
         kPrintf( "%s File Open Fail\n", vcFileName );
         return ;
     }
+    
     
     // 파일의 끝까지 출력하는 것을 반복
     iEnterCount = 0;
@@ -2167,6 +2170,10 @@ static void kReadDataFromFile( const char* pcParameterBuffer )
         }
     }
     fclose( fp );
+    //}
+    //else{
+    //    kPrintf("Permission denied\n");
+    //}
 }
 
 /**
