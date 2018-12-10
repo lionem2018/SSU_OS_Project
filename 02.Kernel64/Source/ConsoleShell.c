@@ -2670,3 +2670,31 @@ static void kChangeUser(){
             kPrintf("Failed\n");
         }
 }
+
+static void kChangePermission( const char* pcParameterBuffer ){
+    PARAMETERLIST stList;
+    char vcFileName[ 50 ];
+    char userName [ 16 ];
+    char FilePermission[3];
+    int iLength;
+    FILE* fp;
+    int iEnterCount;
+    int iFilePermission = 0;
+    BOOL bCheckSucess;
+    
+    kInitializeParameter( &stList, pcParameterBuffer );
+    iLength = kGetNextParameter( &stList, vcFileName );
+    vcFileName[ iLength ] = '\0';
+
+    iLength = kGetNextParameter( &stList, FilePermission);
+    FilePermission[iLength] = '\0';
+    iFilePermission = kAToI( FilePermission , 10 );
+
+    bCheckSucess = kChangeFilePermission(vcFileName, iFilePermission);
+    if(bCheckSucess)
+        kPrintf("Permission change Sucess\n");
+
+    else
+        kPrintf("Permission change Fail\n");    
+
+}
