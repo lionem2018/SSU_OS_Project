@@ -68,7 +68,10 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         { "flush", "Flush File System Cache", kFlushCache },
         { "adduser", "Add User", kAddUser },
         { "chuser", "Change User", kChangeUser },
-        { "chmod", "Change File Permission", kChangePermission}
+        { "chmod", "Change File Permission", kChangePermission},
+        { "chpass", "Change Password", kChangePasswd},
+        { "deluser", "Delete User", kDeleteUser},
+        { "showuser", "Show User Table", kShowUser},
 };                                
 
 char currentUserID [ 16 ];
@@ -90,8 +93,9 @@ void kStartConsoleShell( void )
     BYTE bLastSecond, bLastMinute, bCurrentSecond, bCurrentMinute, bHour;
     char cline[81] = {'=',};
 
-    selectUser();
+    if(!firstUser()) selectUser();
 
+    kPrintf( "%s", currentUserID );
     kPrintf( CONSOLESHELL_PROMPTMESSAGE );
 
     kMemSet(cline , '=' , 80);
@@ -137,7 +141,8 @@ void kStartConsoleShell( void )
             }
             
             // ������Ʈ ���? �� Ŀ�ǵ� ���� �ʱ�ȭ
-            kPrintf( "%s", CONSOLESHELL_PROMPTMESSAGE ); 
+            kPrintf( "%s", currentUserID );
+            kPrintf( CONSOLESHELL_PROMPTMESSAGE ); 
             kPrintStringXY( 0, 23, cline);
             kPrintTime(bLastMinute, bLastSecond, bCurrentMinute, bCurrentSecond);
             kPrintStringXY( 0, 24, CONSOLESHELL_RUNNINGTIME );
@@ -1789,6 +1794,7 @@ static void kMountHDD( const char* pcParameterBuffer )
     }
 
     fclose( fp );
+    kFlushFileSystemCache();
     kPrintf( "HDD Mount Success\n" );
 }
 
@@ -2654,16 +2660,17 @@ static void kAddUser(){
         else{
             kPrintf("Same user name already\n");
         }
+        kFlushFileSystemCache();
 }
 
 static void kChangeUser(){
     char id[16]={0},password[16]={0};
     BOOL res;
 
-        kPrintf("Input New ID: ");
+        kPrintf("Input ID: ");
         getString(id);
 
-        kPrintf("Input New Password: ");
+        kPrintf("Input Password: ");
         getString(password);
 
         res = checkUserInfo(id,password);
@@ -2676,6 +2683,69 @@ static void kChangeUser(){
         else{
             kPrintf("Failed\n");
         }
+}
+
+static void kChangePasswd(){
+    char password[16]={0}, newPasswd[16]={0}, newPasswd2[16]={0};;
+    BOOL res;
+    if(isPrePasswdExist(currentUserID)){
+        kPrintf("Input password: ");
+        getString(password);
+        res=checkUserInfo(currentUserID,password);
+        if(res==FALSE){
+            kPrintf("Wrong password\n");
+            return;
+        }
+    }
+    
+    kPrintf("Input new password: ");
+    getString(newPasswd);
+    kPrintf("Input Again: ");
+    getString(newPasswd2);
+
+    if(!kStrCmp(newPasswd,newPasswd2)){
+        kPrintf("Not Same\n");
+        return;
+    }
+
+    setPasswd(currentUserID, newPasswd);
+
+    kFlushFileSystemCache();
+
+    kPrintf("Success!\n");
+}
+
+static void kDeleteUser(){
+    char id[16]={0},password[16]={0};
+    BOOL res;
+
+    kPrintf("Input ID: ");
+    getString(id);
+
+    if(kStrCmp(id,currentUserID)){
+        kPrintf("You can't erase current user\n");
+        return;
+    }
+
+    if(kStrCmp(id,"root")){
+        kPrintf("You can't erase root user\n");
+        return;
+    }
+
+    kPrintf("Input Password: ");
+    getString(password);
+
+    res = checkUserInfo(id,password);
+
+    if(res==FALSE){
+        kPrintf("Wrong ID orPassword\n");
+    }
+
+    deleteUser(id);
+
+    kFlushFileSystemCache();
+
+    kPrintf("Sucess!\n");
 }
 
 static void kChangePermission( const char* pcParameterBuffer ){
@@ -2704,4 +2774,8 @@ static void kChangePermission( const char* pcParameterBuffer ){
     else
         kPrintf("Permission change Fail\n");    
 
+}
+
+static void kShowUser(){
+    showTable();
 }

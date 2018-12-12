@@ -17,7 +17,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 #define CONSOLESHELL_MAXCOMMANDBUFFERCOUNT  300
-#define CONSOLESHELL_PROMPTMESSAGE          "MINT64>"
+#define CONSOLESHELL_PROMPTMESSAGE          "@MINT64>"
 #define CONSOLESHELL_RUNNINGTIME            "Running Time="
 #define CONSOLESHELL_CURRENTTIME            "Current Time="
 // ���ڿ� �����͸� �Ķ���ͷ�? �޴� �Լ� ������ Ÿ�� ����
@@ -118,5 +118,8 @@ static void kTestFreeList( const char* pcParameterBuffer );
 
 static void kAddUser();
 static void kChangeUser();
+static void kChangePasswd();
+static void kDeleteUser();
+static void kShowUser();
 static void kChangePermission( const char* pcParameterBuffer );
 #endif /*__CONSOLESHELL_H__*/
