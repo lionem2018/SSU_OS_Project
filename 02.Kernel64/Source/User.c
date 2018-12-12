@@ -160,10 +160,11 @@ int getUserTableIndex(const char* userID){
     for(int i=0;i<=tableIndex;i++){ 
         if(kStrCmp(userID,userTable[i].userID)){
             nowUserIdx=i;
-            break;
+            
+            return nowUserIdx;
         }
     }
-    return nowUserIdx;
+    return -1;
 }
 
 BOOL isPrePasswdExist(const char* userID){
