@@ -68,7 +68,8 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         { "flush", "Flush File System Cache", kFlushCache },
         { "adduser", "Add User", kAddUser },
         { "chuser", "Change User", kChangeUser },
-        { "chmod", "Change File Permission", kChangePermission}
+        { "chmod", "Change File Permission", kChangePermission },
+        { "chown", "Change File Owner root only use", kChangeOwner }
 };                                
 
 char currentUserID [ 16 ];
@@ -1863,25 +1864,40 @@ static void kDeleteFileInRootDirectory( const char* pcParameterBuffer )
 {
     PARAMETERLIST stList;
     char vcFileName[ 50 ];
+    const char pcFileName[50];
     int iLength;
+    int iDirectoryoffset;
+    DIRECTORYENTRY stEntry;
+    int icheckUser;
     
     // 파라미터 리스트를 초기화하여 파일 이름을 추출
     kInitializeParameter( &stList, pcParameterBuffer );
     iLength = kGetNextParameter( &stList, vcFileName );
     vcFileName[ iLength ] = '\0';
+    iDirectoryoffset = kFindDirectoryEntry(pcFileName, &stEntry);
+    iLength = kStrLen(currentUserID);
+    icheckUser =kMemCmp(stEntry.ownUserID,currentUserID,iLength);
+
     if( ( iLength > ( FILESYSTEM_MAXFILENAMELENGTH - 1 ) ) || ( iLength == 0 ) )
     {
         kPrintf( "Too Long or Too Short File Name\n" );
         return ;
     }
 
-    if( remove( vcFileName ) != 0 )
-    {
-        kPrintf( "File Not Found or File Opened\n" );
-        return ;
+    if((icheckUser  && !(stEntry.bPermission &= 0x02)) || 
+    (!(stEntry.bPermission &= 0x10) && !icheckUser)){
+        kPrintf("Permission denied\n");
     }
+
+    else{
+        if( remove( vcFileName ) != 0 )
+        {
+            kPrintf( "File Not Found or File Opened\n" );
+            return ;
+        }
     
-    kPrintf( "File Delete Success\n" );
+        kPrintf( "File Delete Success\n" );
+    }
 }
 
 /**
@@ -1990,7 +2006,6 @@ static void kShowRootDirectory( const char* pcParameterBuffer )
         kMemCpy(vcBuffer, vcTempValue, kStrLen( vcTempValue ) );
 
         kMemCpy(vcBuffer+10, pstEntry->ownUserID, kStrLen(pstEntry->ownUserID)+1 );
-
         kPrintf( "%s\n", vcBuffer );
 
         kMemSet( vcBuffer, ' ', sizeof( vcBuffer ) - 1 );
@@ -2046,15 +2061,21 @@ static void kWriteDataToFile( const char* pcParameterBuffer )
     PARAMETERLIST stList;
     char vcFileName[ 50 ];
     char userName[ 16 ];
+    const char pcFileName[50];
     int iLength;
     FILE* fp;
     int iEnterCount;
     BYTE bKey;
+    int iDirectoryoffset;
+    DIRECTORYENTRY stEntry;
+    int icheckUser;
     
     // 파라미터 리스트를 초기화하여 파일 이름을 추출
     kInitializeParameter( &stList, pcParameterBuffer );
     iLength = kGetNextParameter( &stList, vcFileName );
     vcFileName[ iLength ] = '\0';
+    kMemCpy(pcFileName,vcFileName, iLength + 1);
+
     if( ( iLength > ( FILESYSTEM_MAXFILENAMELENGTH - 1 ) ) || ( iLength == 0 ) )
     {
         kPrintf( "Too Long or Too Short File Name\n" );
@@ -2063,7 +2084,15 @@ static void kWriteDataToFile( const char* pcParameterBuffer )
 
     kMemCpy(userName, currentUserID, kStrLen( currentUserID ));
     userName[ kStrLen(currentUserID) ] = '\0';
-    
+    iDirectoryoffset = kFindDirectoryEntry(pcFileName, &stEntry);
+    iLength = kStrLen(currentUserID);
+    icheckUser =kMemCmp(stEntry.ownUserID,currentUserID,iLength);
+    if((icheckUser  && !(stEntry.bPermission &= 0x02)) || 
+    (!(stEntry.bPermission &= 0x10) && !icheckUser)){
+        kPrintf("Permission denied\n");
+    }
+
+    else{
     // 파일 생성
     fp = fopen( vcFileName, "w", userName);
     if( fp == NULL )
@@ -2102,6 +2131,7 @@ static void kWriteDataToFile( const char* pcParameterBuffer )
     
     kPrintf( "File Create Success\n" );
     fclose( fp );
+    }
 }
 
 /**
@@ -2112,25 +2142,36 @@ static void kReadDataFromFile( const char* pcParameterBuffer )
     PARAMETERLIST stList;
     char vcFileName[ 50 ];
     char userName [ 16 ];
+    const char pcFileName[50];
     int iLength;
     FILE* fp;
     int iEnterCount;
     BYTE bKey;
+    int iDirectoryoffset;
+    DIRECTORYENTRY stEntry;
+    int icheckUser;
     
     // 파라미터 리스트를 초기화하여 파일 이름을 추출
     kInitializeParameter( &stList, pcParameterBuffer );
     iLength = kGetNextParameter( &stList, vcFileName );
     vcFileName[ iLength ] = '\0';
+    kMemCpy(pcFileName,vcFileName, iLength + 1);
+
     if( ( iLength > ( FILESYSTEM_MAXFILENAMELENGTH - 1 ) ) || ( iLength == 0 ) )
     {
         kPrintf( "Too Long or Too Short File Name\n" );
         return ;
     }
 
-    kMemCpy(userName, currentUserID, kStrLen( currentUserID ));
-    userName[ kStrLen(currentUserID) ] = '\0';
+    iDirectoryoffset = kFindDirectoryEntry(pcFileName, &stEntry);
+    iLength = kStrLen(currentUserID);
+    icheckUser =kMemCmp(stEntry.ownUserID,currentUserID,iLength);
+    if((((icheckUser != 0 ) && !(stEntry.bPermission &= 0x04))) || 
+    (!(stEntry.bPermission &= 0x20) && !icheckUser)){
+        kPrintf("Permission denied\n");
+    }
     
-    //if(){
+    else{
     // 파일 생성
     fp = fopen( vcFileName, "r", currentUserID);
     if( fp == NULL )
@@ -2170,10 +2211,7 @@ static void kReadDataFromFile( const char* pcParameterBuffer )
         }
     }
     fclose( fp );
-    //}
-    //else{
-    //    kPrintf("Permission denied\n");
-    //}
+    }
 }
 
 /**
@@ -2704,4 +2742,41 @@ static void kChangePermission( const char* pcParameterBuffer ){
     else
         kPrintf("Permission change Fail\n");    
 
+}
+
+void kChangeOwner(const char * pcParamegerBuffer ){
+
+    PARAMETERLIST stList;
+    int iLength;
+    char vcFileName[50];
+    char OwnUser[50];
+    int iDirectoryoffset;
+    DIRECTORYENTRY stEntry;
+    int icheckUser;
+    BOOL bCheckOwner;
+
+    kInitializeParameter( &stList, pcParamegerBuffer );
+    iLength = kGetNextParameter( &stList, vcFileName );
+    vcFileName[ iLength ] = '\0';
+
+    iLength = kGetNextParameter( &stList, OwnUser);
+    OwnUser[ iLength ] = '\0';
+    icheckUser = kMemCmp("root",currentUserID,4);
+ 
+    if(!icheckUser){
+        bCheckOwner = kChangeFileOwner(vcFileName, OwnUser);
+        if(bCheckOwner)
+            kPrintf("File Owner change Success\n");
+
+        else
+            kPrintf("File Owner change Fail\n");
+    }
+        
+    else{
+        kPrintf("Permission denied\n");
+    }
+
+
+    
+    ;
 }

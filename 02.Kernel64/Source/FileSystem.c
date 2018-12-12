@@ -828,7 +828,7 @@ static BOOL kGetDirectoryEntryData( int iIndex, DIRECTORYENTRY* pstEntry )
 /**
  *  루트 디렉터리에서 파일 이름이 일치하는 엔트리를 찾아서 인덱스를 반환
  */
-static int kFindDirectoryEntry( const char* pcFileName, DIRECTORYENTRY* pstEntry )
+int kFindDirectoryEntry( const char* pcFileName, DIRECTORYENTRY* pstEntry )
 {
     DIRECTORYENTRY* pstRootEntry;
     int i;
@@ -1954,6 +1954,45 @@ BOOL kChangeFilePermission( const char* pcFileName, int permission){
     }
     
     // 동기화
+    kUnlock( &( gs_stFileSystemManager.stMutex ) );
+    return TRUE;
+}
+
+BOOL kChangeFileOwner(const char* pcFileName, const char* Owner){
+
+    DIRECTORYENTRY stEntry;
+    int iOffset;
+    int iFileNameLength;
+    int iDirectoryEntryOffset;
+    int iLength;
+
+    iFileNameLength = kStrLen( pcFileName );
+    if( ( iFileNameLength > ( sizeof( stEntry.vcFileName ) - 1 ) ) || 
+        ( iFileNameLength == 0 ) )
+    {
+        return FALSE;
+    }
+
+    kLock( &( gs_stFileSystemManager.stMutex ) );
+
+    iDirectoryEntryOffset = kFindDirectoryEntry( pcFileName, &stEntry );
+    if( iDirectoryEntryOffset == -1 ) 
+    { 
+        // 동기화
+        kUnlock( &( gs_stFileSystemManager.stMutex ) );
+        return FALSE;
+    }
+
+    iLength = kStrLen(Owner);
+    kMemCpy(stEntry.ownUserID, Owner,iLength + 1);
+
+    if( kSetDirectoryEntryData( iDirectoryEntryOffset, &stEntry ) == FALSE )
+    {
+        // 동기화
+        kUnlock( &( gs_stFileSystemManager.stMutex ) );
+        return FALSE;
+    }
+
     kUnlock( &( gs_stFileSystemManager.stMutex ) );
     return TRUE;
 }

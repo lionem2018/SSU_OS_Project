@@ -119,4 +119,5 @@ static void kTestFreeList( const char* pcParameterBuffer );
 static void kAddUser();
 static void kChangeUser();
 static void kChangePermission( const char* pcParameterBuffer );
+static void kChangeOwner( const char* pcParameterBuffer);
 #endif /*__CONSOLESHELL_H__*/

@@ -242,7 +242,7 @@ static BOOL kGetClusterLinkData( DWORD dwClusterIndex, DWORD* pdwData );
 static int kFindFreeDirectoryEntry( void );
 static BOOL kSetDirectoryEntryData( int iIndex, DIRECTORYENTRY* pstEntry );
 static BOOL kGetDirectoryEntryData( int iIndex, DIRECTORYENTRY* pstEntry );
-static int kFindDirectoryEntry( const char* pcFileName, DIRECTORYENTRY* pstEntry );
+int kFindDirectoryEntry( const char* pcFileName, DIRECTORYENTRY* pstEntry );
 void kGetFileSystemInformation( FILESYSTEMMANAGER* pstManager );
 
 // 캐시 관련 함수
@@ -277,6 +277,7 @@ BOOL kWriteZero( FILE* pstFile, DWORD dwCount );
 BOOL kIsFileOpened( const DIRECTORYENTRY* pstEntry );
 ///////////////////////////////////////////////
 BOOL kChangeFilePermission( const char* pcFileName, int permission);
+BOOL kChangeFileOwner(const char* pcFileName, const char* Owner);
 ///////////////////////////////////////////////
 
 static void* kAllocateFileDirectoryHandle( void );
