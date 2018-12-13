@@ -69,7 +69,10 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         { "adduser", "Add User", kAddUser },
         { "chuser", "Change User", kChangeUser },
         { "chmod", "Change File Permission", kChangePermission },
-        { "chown", "Change File Owner root only use", kChangeOwner }
+        { "chown", "Change File Owner root only use", kChangeOwner },
+        { "chpass", "Change Password", kChangePasswd},
+        { "deluser", "Delete User", kDeleteUser},
+        { "showuser", "Show User Table", kShowUser},
 };                                
 
 char currentUserID [ 16 ];
@@ -91,8 +94,9 @@ void kStartConsoleShell( void )
     BYTE bLastSecond, bLastMinute, bCurrentSecond, bCurrentMinute, bHour;
     char cline[81] = {'=',};
 
-    selectUser();
+    if(!firstUser()) selectUser();
 
+    kPrintf( "%s", currentUserID );
     kPrintf( CONSOLESHELL_PROMPTMESSAGE );
 
     kMemSet(cline , '=' , 80);
@@ -138,7 +142,8 @@ void kStartConsoleShell( void )
             }
             
             // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿? ï¿½ï¿½ Ä¿ï¿½Çµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
-            kPrintf( "%s", CONSOLESHELL_PROMPTMESSAGE ); 
+            kPrintf( "%s", currentUserID );
+            kPrintf( CONSOLESHELL_PROMPTMESSAGE ); 
             kPrintStringXY( 0, 23, cline);
             kPrintTime(bLastMinute, bLastSecond, bCurrentMinute, bCurrentSecond);
             kPrintStringXY( 0, 24, CONSOLESHELL_RUNNINGTIME );
@@ -1790,6 +1795,7 @@ static void kMountHDD( const char* pcParameterBuffer )
     }
 
     fclose( fp );
+    kFlushFileSystemCache();
     kPrintf( "HDD Mount Success\n" );
 }
 
@@ -2069,7 +2075,9 @@ static void kWriteDataToFile( const char* pcParameterBuffer )
     int iDirectoryoffset;
     DIRECTORYENTRY stEntry;
     int icheckUser;
-    
+    int icheckroot;
+    BOOL bcheckPermission = TRUE;
+
     // ÆÄ¶ó¹ÌÅÍ ¸®½ºÆ®¸¦ ÃÊ±âÈ­ÇÏ¿© ÆÄÀÏ ÀÌ¸§À» ÃßÃâ
     kInitializeParameter( &stList, pcParameterBuffer );
     iLength = kGetNextParameter( &stList, vcFileName );
@@ -2087,12 +2095,8 @@ static void kWriteDataToFile( const char* pcParameterBuffer )
     iDirectoryoffset = kFindDirectoryEntry(pcFileName, &stEntry);
     iLength = kStrLen(currentUserID);
     icheckUser =kMemCmp(stEntry.ownUserID,currentUserID,iLength);
-    if((icheckUser  && !(stEntry.bPermission &= 0x02)) || 
-    (!(stEntry.bPermission &= 0x10) && !icheckUser)){
-        kPrintf("Permission denied\n");
-    }
+    icheckroot = kMemCmp(currentUserID,"root",4);
 
-    else{
     // ÆÄÀÏ »ý¼º
     fp = fopen( vcFileName, "w", userName);
     if( fp == NULL )
@@ -2100,7 +2104,21 @@ static void kWriteDataToFile( const char* pcParameterBuffer )
         kPrintf( "%s File Open Fail\n", vcFileName );
         return ;
     }
+
+    // not root user 
+    if(icheckroot != 0 && iDirectoryoffset != -1){
+        //file owner not correct
+        if(icheckUser != 0 && !(stEntry.bPermission &= 0x02)){
+            kPrintf("Permission denied\n");
+            bcheckPermission = FALSE;
+        }
+        else if(!icheckUser && !(stEntry.bPermission &= 0x10) ){
+            kPrintf("Permission denied\n");
+            bcheckPermission = FALSE;
+        }
+    }
     
+    if(bcheckPermission){
     // ¿£ÅÍ Å°°¡ ¿¬¼ÓÀ¸·Î 3¹ø ´­·¯Áú ¶§±îÁö ³»¿ëÀ» ÆÄÀÏ¿¡ ¾¸
     iEnterCount = 0;
     while( 1 )
@@ -2132,6 +2150,15 @@ static void kWriteDataToFile( const char* pcParameterBuffer )
     kPrintf( "File Create Success\n" );
     fclose( fp );
     }
+
+     if( kFlushFileSystemCache() == TRUE )
+    {
+        kPrintf( "Pass\n" );
+    }
+    else
+    {
+        kPrintf( "Fail\n" );
+    }
 }
 
 /**
@@ -2150,6 +2177,8 @@ static void kReadDataFromFile( const char* pcParameterBuffer )
     int iDirectoryoffset;
     DIRECTORYENTRY stEntry;
     int icheckUser;
+    int icheckroot;
+    BOOL bcheckPermission = TRUE;
     
     // ÆÄ¶ó¹ÌÅÍ ¸®½ºÆ®¸¦ ÃÊ±âÈ­ÇÏ¿© ÆÄÀÏ ÀÌ¸§À» ÃßÃâ
     kInitializeParameter( &stList, pcParameterBuffer );
@@ -2166,24 +2195,30 @@ static void kReadDataFromFile( const char* pcParameterBuffer )
     iDirectoryoffset = kFindDirectoryEntry(pcFileName, &stEntry);
     iLength = kStrLen(currentUserID);
     icheckUser =kMemCmp(stEntry.ownUserID,currentUserID,iLength);
-    if((((icheckUser != 0 ) && !(stEntry.bPermission &= 0x04))) || 
-    (!(stEntry.bPermission &= 0x20) && !icheckUser)){
-        kPrintf("Permission denied\n");
-    }
+    icheckroot = kMemCmp(currentUserID,"root",4);
     
-    else{
-    // ÆÄÀÏ »ý¼º
     fp = fopen( vcFileName, "r", currentUserID);
     if( fp == NULL )
     {
         kPrintf( "%s File Open Fail\n", vcFileName );
         return ;
     }
-    
-    
+   
+    if(icheckroot != 0 ){
+        //file owner not correct
+        if(icheckUser != 0 && !(stEntry.bPermission &= 0x04)){
+            kPrintf("Permission denied\n");
+            bcheckPermission = FALSE;
+        }
+        else if(!icheckUser && !(stEntry.bPermission &= 0x20) ){
+            kPrintf("Permission denied\n");
+            bcheckPermission = FALSE;
+        }
+    }
     // ÆÄÀÏÀÇ ³¡±îÁö Ãâ·ÂÇÏ´Â °ÍÀ» ¹Ýº¹
-    iEnterCount = 0;
-    while( 1 )
+    if(bcheckPermission){
+        iEnterCount = 0;
+        while( 1 )
     {
         if( fread( &bKey, 1, 1, fp ) != 1 )
         {
@@ -2692,16 +2727,17 @@ static void kAddUser(){
         else{
             kPrintf("Same user name already\n");
         }
+        kFlushFileSystemCache();
 }
 
 static void kChangeUser(){
     char id[16]={0},password[16]={0};
     BOOL res;
 
-        kPrintf("Input New ID: ");
+        kPrintf("Input ID: ");
         getString(id);
 
-        kPrintf("Input New Password: ");
+        kPrintf("Input Password: ");
         getString(password);
 
         res = checkUserInfo(id,password);
@@ -2714,6 +2750,69 @@ static void kChangeUser(){
         else{
             kPrintf("Failed\n");
         }
+}
+
+static void kChangePasswd(){
+    char password[16]={0}, newPasswd[16]={0}, newPasswd2[16]={0};;
+    BOOL res;
+    if(isPrePasswdExist(currentUserID)){
+        kPrintf("Input password: ");
+        getString(password);
+        res=checkUserInfo(currentUserID,password);
+        if(res==FALSE){
+            kPrintf("Wrong password\n");
+            return;
+        }
+    }
+    
+    kPrintf("Input new password: ");
+    getString(newPasswd);
+    kPrintf("Input Again: ");
+    getString(newPasswd2);
+
+    if(!kStrCmp(newPasswd,newPasswd2)){
+        kPrintf("Not Same\n");
+        return;
+    }
+
+    setPasswd(currentUserID, newPasswd);
+
+    kFlushFileSystemCache();
+
+    kPrintf("Success!\n");
+}
+
+static void kDeleteUser(){
+    char id[16]={0},password[16]={0};
+    BOOL res;
+
+    kPrintf("Input ID: ");
+    getString(id);
+
+    if(kStrCmp(id,currentUserID)){
+        kPrintf("You can't erase current user\n");
+        return;
+    }
+
+    if(kStrCmp(id,"root")){
+        kPrintf("You can't erase root user\n");
+        return;
+    }
+
+    kPrintf("Input Password: ");
+    getString(password);
+
+    res = checkUserInfo(id,password);
+
+    if(res==FALSE){
+        kPrintf("Wrong ID orPassword\n");
+    }
+
+    deleteUser(id);
+
+    kFlushFileSystemCache();
+
+    kPrintf("Sucess!\n");
 }
 
 static void kChangePermission( const char* pcParameterBuffer ){
@@ -2754,6 +2853,7 @@ void kChangeOwner(const char * pcParamegerBuffer ){
     DIRECTORYENTRY stEntry;
     int icheckUser;
     BOOL bCheckOwner;
+    int icheckUserExist;
 
     kInitializeParameter( &stList, pcParamegerBuffer );
     iLength = kGetNextParameter( &stList, vcFileName );
@@ -2762,8 +2862,13 @@ void kChangeOwner(const char * pcParamegerBuffer ){
     iLength = kGetNextParameter( &stList, OwnUser);
     OwnUser[ iLength ] = '\0';
     icheckUser = kMemCmp("root",currentUserID,4);
- 
-    if(!icheckUser){
+    icheckUserExist = getUserTableIndex(OwnUser);
+    
+    if(icheckUserExist == -1){
+        kPrintf("User not Exist\n");
+        return;
+    }
+    if(!icheckUser && icheckUserExist != -1){
         bCheckOwner = kChangeFileOwner(vcFileName, OwnUser);
         if(bCheckOwner)
             kPrintf("File Owner change Success\n");
@@ -2776,7 +2881,8 @@ void kChangeOwner(const char * pcParamegerBuffer ){
         kPrintf("Permission denied\n");
     }
 
-
+}
     
-    ;
+static void kShowUser(){
+    showTable();
 }

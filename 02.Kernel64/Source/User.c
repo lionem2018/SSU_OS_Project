@@ -12,6 +12,9 @@ BOOL readUserInfo(){
     int stringIndex=0;
     int nowId=1;
 
+
+    initializeTable();
+
     FILE* pstFile = kOpenFile(".userinfo", 'r', "root");
     while(kReadFile(tmp, 1, 1,pstFile)){
         if(tmp[0]=='/'){
@@ -31,12 +34,10 @@ BOOL readUserInfo(){
         }
     }
 
+
     kCloseFile(pstFile);
 
-    for(int i=0;i<=tableIndex;i++){
-        kPrintf("%s ",userTable[i].userID);
-        kPrintf("%s\n",userTable[i].userPasswd);
-    }
+    
     return FALSE;
 }
 
@@ -75,8 +76,8 @@ BOOL addUser( const char* userID, const char* userPasswd ){
         FILE* pstFile = kOpenFile(".userinfo", 'a', "root");
         kSeekFile(pstFile,0,FILESYSTEM_SEEK_END);
         kWriteFile(idPass,kStrLen(idPass),1,pstFile);
-        kStrCpy(userTable[tableIndex].userID,userID);
-        kStrCpy(userTable[tableIndex++].userPasswd,userPasswd);
+        kStrCpy(userTable[++tableIndex].userID,userID);
+        kStrCpy(userTable[tableIndex].userPasswd,userPasswd);
 
         kCloseFile(pstFile);
 
@@ -84,15 +85,95 @@ BOOL addUser( const char* userID, const char* userPasswd ){
     }
 }
 
-static BOOL deleteUser( const char* userID, const char* userPasswd ){
-    return FALSE;
+void deleteUser( const char* userID){
+    kRemoveFile(".userinfo");
+    FILE* pstFile = kOpenFile(".userinfo", 'w', "root");
+        
+    for(int i=0;i<=tableIndex;i++){
+        if(!kStrCmp(userID, userTable[i].userID)){
+        char idPass[35]={0};
+        char*now=idPass;
+        if(i!=0||(kStrCmp(userID, userTable[i].userID)&&i==1)){
+            idPass[0]='\n';
+            now++;
+        }
+        kStrCpy(now,userTable[i].userID);
+        now+=kStrLen(userTable[i].userID);
+        *now='/';
+        now++;
+        kStrCpy(now,userTable[i].userPasswd);
+
+        kWriteFile(idPass,kStrLen(idPass),1,pstFile);
+        }
+    }
+    kCloseFile(pstFile);
+
+    readUserInfo();
 }
 
-// static BOOL changeUser( const char* userID, const char* userPasswd){
-    
-//     return FALSE;
-// }
+void initializeTable(){
+    for(int i=0;i<=tableIndex;i++){
+        for(int j=0;j<16;j++){
+            userTable[i].userID[j]=0;
+            userTable[i].userPasswd[j]=0;
+        }
+    }
+    tableIndex=0;
+}
 
-static BOOL setPasswd( const char* userPasswd){
-    return FALSE;
+
+void showTable(){
+    for(int i=0;i<=tableIndex;i++){
+        kPrintf("%s ",userTable[i].userID);
+        kPrintf("%s\n",userTable[i].userPasswd);
+    }
+}
+
+void setPasswd( const char* userID, const char* newPasswd){
+    int idx = getUserTableIndex(userID);
+
+    kStrCpy(userTable[idx].userPasswd,newPasswd);
+
+    FILE* pstFile = kOpenFile(".userinfo", 'w', "root");
+        
+    for(int i=0;i<=tableIndex;i++){
+        char idPass[35]={0};
+        char*now=idPass;
+        if(i!=0){
+            idPass[0]='\n';
+            now++;
+        }
+        kStrCpy(now,userTable[i].userID);
+        now+=kStrLen(userTable[i].userID);
+        *now='/';
+        now++;
+        kStrCpy(now,userTable[i].userPasswd);
+
+        kWriteFile(idPass,kStrLen(idPass),1,pstFile);
+    }
+
+    kCloseFile(pstFile);
+}
+
+int getUserTableIndex(const char* userID){
+    int nowUserIdx;
+    for(int i=0;i<=tableIndex;i++){ 
+        if(kStrCmp(userID,userTable[i].userID)){
+            nowUserIdx=i;
+            
+            return nowUserIdx;
+        }
+    }
+    return -1;
+}
+
+BOOL isPrePasswdExist(const char* userID){
+    int idx=getUserTableIndex(userID);
+    if(userTable[idx].userPasswd[0]) return TRUE;
+    else return FALSE;
+}
+
+BOOL firstUser(){
+    if(userTable[0].userID[0]==0) return TRUE;
+    else return FALSE;
 }
