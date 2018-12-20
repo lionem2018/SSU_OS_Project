@@ -1861,6 +1861,8 @@ static void kCreateFileInRootDirectory( const char* pcParameterBuffer )
     }
     fclose( pstFile );
     kPrintf( "File Create Success\n" );
+
+    kFlushFileSystemCache();
 }
 
 /**
@@ -1875,37 +1877,50 @@ static void kDeleteFileInRootDirectory( const char* pcParameterBuffer )
     int iDirectoryoffset;
     DIRECTORYENTRY stEntry;
     int icheckUser;
+    int icheckroot;
+    BOOL bcheckPermission = TRUE;
     
     // 파라미터 리스트를 초기화하여 파일 이름을 추출
     kInitializeParameter( &stList, pcParameterBuffer );
     iLength = kGetNextParameter( &stList, vcFileName );
     vcFileName[ iLength ] = '\0';
-    iDirectoryoffset = kFindDirectoryEntry(pcFileName, &stEntry);
+    iDirectoryoffset = kFindDirectoryEntry(vcFileName, &stEntry);
     iLength = kStrLen(currentUserID);
     icheckUser =kMemCmp(stEntry.ownUserID,currentUserID,iLength);
-
+    icheckroot = kMemCmp(currentUserID,"root",4);
+   
     if( ( iLength > ( FILESYSTEM_MAXFILENAMELENGTH - 1 ) ) || ( iLength == 0 ) )
     {
         kPrintf( "Too Long or Too Short File Name\n" );
         return ;
     }
 
-    if((!icheckUser  && (stEntry.bPermission & 0x10)) ||
-    ((stEntry.bPermission & 0x02) && icheckUser)){
+    /*if((icheckUser  && !(stEntry.bPermission &= 0x02)) || 
+    (!(stEntry.bPermission &= 0x10) && !icheckUser) || icheckroot != 0){
+        kPrintf("Permission denied\n");
+    }*/
+    if(icheckroot != 0){
+        if(icheckUser != 0 && !(stEntry.bPermission &= 0x02)){
+            kPrintf("Permission denied1\n");
+            bcheckPermission = FALSE;
+        }
+        else if(!icheckUser && !(stEntry.bPermission &= 0x10)){
+            kPrintf("Permission denied2\n");
+            bcheckPermission = FALSE;
+        }
+    }
+    
+    if(bcheckPermission){
         if( remove( vcFileName ) != 0 )
         {
             kPrintf( "File Not Found or File Opened\n" );
             return ;
         }
     
-        kPrintf( "File Delete Success\n" );
-    }
+            kPrintf( "File Delete Success\n" );
+        }
+       kFlushFileSystemCache(); 
     
-
-    else{
-        
-        kPrintf("Permission denied\n");
-    }
 }
 
 /**
@@ -2866,6 +2881,7 @@ static void kChangePermission( const char* pcParameterBuffer ){
     else{
         kPrintf("Permission denied\n"); 
     }
+
     kFlushFileSystemCache();
 }
 
