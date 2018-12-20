@@ -1890,12 +1890,8 @@ static void kDeleteFileInRootDirectory( const char* pcParameterBuffer )
         return ;
     }
 
-    if((icheckUser  && !(stEntry.bPermission &= 0x02)) || 
-    (!(stEntry.bPermission &= 0x10) && !icheckUser)){
-        kPrintf("Permission denied\n");
-    }
-
-    else{
+    if((!icheckUser  && (stEntry.bPermission & 0x10)) ||
+    ((stEntry.bPermission & 0x02) && icheckUser)){
         if( remove( vcFileName ) != 0 )
         {
             kPrintf( "File Not Found or File Opened\n" );
@@ -1903,6 +1899,12 @@ static void kDeleteFileInRootDirectory( const char* pcParameterBuffer )
         }
     
         kPrintf( "File Delete Success\n" );
+    }
+    
+
+    else{
+        
+        kPrintf("Permission denied\n");
     }
 }
 
