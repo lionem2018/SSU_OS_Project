@@ -67,7 +67,7 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         { "testperformance", "Test File Read/WritePerformance", kTestPerformance },
         { "flush", "Flush File System Cache", kFlushCache },
         { "adduser", "Add User", kAddUser },
-        { "chuser", "Change User", kChangeUser },
+        { "chuser", "fChange User", kChangeUser },
         { "chmod", "Change File Permission", kChangePermission },
         { "chown", "Change File Owner root only use", kChangeOwner },
         { "chpass", "Change Password", kChangePasswd},
@@ -2714,6 +2714,15 @@ static void kFlushCache( const char* pcParameterBuffer )
 static void kAddUser(){
     char id[16]={0},password[16]={0};
     BOOL res;
+    int icheckroot;
+
+    icheckroot = kMemCmp(currentUserID,"root",4);
+
+    if(icheckroot != 0){
+        kPrintf("Permission denied\n");
+    }
+
+    else{
 
         kPrintf("Input New ID: ");
         getString(id);
@@ -2728,6 +2737,7 @@ static void kAddUser(){
             kPrintf("Same user name already\n");
         }
         kFlushFileSystemCache();
+    }
 }
 
 static void kChangeUser(){
@@ -2785,34 +2795,43 @@ static void kChangePasswd(){
 static void kDeleteUser(){
     char id[16]={0},password[16]={0};
     BOOL res;
+    int icheckroot;
 
-    kPrintf("Input ID: ");
-    getString(id);
+    icheckroot = kMemCmp(currentUserID,"root",4);
 
-    if(kStrCmp(id,currentUserID)){
-        kPrintf("You can't erase current user\n");
-        return;
+    if(icheckroot != 0){
+        kPrintf("Permission denied\n");
     }
 
-    if(kStrCmp(id,"root")){
-        kPrintf("You can't erase root user\n");
-        return;
+    else{
+        kPrintf("Input ID: ");
+        getString(id);
+
+        if(kStrCmp(id,currentUserID)){
+            kPrintf("You can't erase current user\n");
+            return;
+        }
+
+        if(kStrCmp(id,"root")){
+            kPrintf("You can't erase root user\n");
+            return;
+        }
+
+        kPrintf("Input Password: ");
+        getString(password);
+
+        res = checkUserInfo(id,password);
+
+        if(res==FALSE){
+            kPrintf("Wrong ID orPassword\n");
+        }
+
+        deleteUser(id);
+
+        kFlushFileSystemCache();
+
+        kPrintf("Sucess!\n");
     }
-
-    kPrintf("Input Password: ");
-    getString(password);
-
-    res = checkUserInfo(id,password);
-
-    if(res==FALSE){
-        kPrintf("Wrong ID orPassword\n");
-    }
-
-    deleteUser(id);
-
-    kFlushFileSystemCache();
-
-    kPrintf("Sucess!\n");
 }
 
 static void kChangePermission( const char* pcParameterBuffer ){
