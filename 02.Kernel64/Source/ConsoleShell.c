@@ -2150,15 +2150,7 @@ static void kWriteDataToFile( const char* pcParameterBuffer )
     kPrintf( "File Create Success\n" );
     fclose( fp );
     }
-
-     if( kFlushFileSystemCache() == TRUE )
-    {
-        kPrintf( "Pass\n" );
-    }
-    else
-    {
-        kPrintf( "Fail\n" );
-    }
+    kFlushFileSystemCache();
 }
 
 /**
@@ -2844,6 +2836,10 @@ static void kChangePermission( const char* pcParameterBuffer ){
     int iEnterCount;
     int iFilePermission = 0;
     BOOL bCheckSucess;
+    int icheckroot;
+    int icheckOwner;
+    int iDirectoryoffset;
+    DIRECTORYENTRY stEntry;
     
     kInitializeParameter( &stList, pcParameterBuffer );
     iLength = kGetNextParameter( &stList, vcFileName );
@@ -2853,13 +2849,22 @@ static void kChangePermission( const char* pcParameterBuffer ){
     FilePermission[iLength] = '\0';
     iFilePermission = kAToI( FilePermission , 10 );
 
-    bCheckSucess = kChangeFilePermission(vcFileName, iFilePermission);
-    if(bCheckSucess)
-        kPrintf("Permission change Sucess\n");
+    iDirectoryoffset = kFindDirectoryEntry(vcFileName, &stEntry);
+    icheckroot = kMemCmp(currentUserID, "root", 4);
+    icheckOwner = kMemCmp(currentUserID,stEntry.ownUserID, kStrLen(currentUserID));
+    
+    if(icheckOwner == 0 || icheckroot == 0){
+        bCheckSucess = kChangeFilePermission(vcFileName, iFilePermission);
+        if(bCheckSucess)
+            kPrintf("Permission change Sucess\n");
 
-    else
-        kPrintf("Permission change Fail\n");    
-
+        else
+            kPrintf("Permission change Fail\n");   
+    } 
+    else{
+        kPrintf("Permission denied\n"); 
+    }
+    kFlushFileSystemCache();
 }
 
 void kChangeOwner(const char * pcParamegerBuffer ){
@@ -2899,7 +2904,7 @@ void kChangeOwner(const char * pcParamegerBuffer ){
     else{
         kPrintf("Permission denied\n");
     }
-
+    kFlushFileSystemCache();
 }
     
 static void kShowUser(){
