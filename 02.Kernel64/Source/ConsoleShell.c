@@ -71,6 +71,8 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
 
 };     
 
+char vcPath [ CONSOLESHELL_MAXCOMMANDBUFFERCOUNT ] = { '/', };
+
 
 //==============================================================================
 //  ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Úµï¿½
@@ -89,7 +91,7 @@ void kStartConsoleShell( void )
     BYTE bLastSecond, bLastMinute, bCurrentSecond, bCurrentMinute, bHour;
     char cline[81] = {'=',};
 
-    kPrintf( CONSOLESHELL_PROMPTMESSAGE );
+    kPrintf( "%s%s>", CONSOLESHELL_PROMPTMESSAGE, vcPath );
 
     kMemSet(cline , '=' , 80);
     kPrintStringXY( 0, 23, cline);
@@ -134,7 +136,7 @@ void kStartConsoleShell( void )
             }
             
             // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿? ï¿½ï¿½ Ä¿ï¿½Çµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
-            kPrintf( "%s", CONSOLESHELL_PROMPTMESSAGE ); 
+            kPrintf( "%s%s>", CONSOLESHELL_PROMPTMESSAGE, vcPath ); 
             kPrintStringXY( 0, 23, cline);
             kPrintTime(bLastMinute, bLastSecond, bCurrentMinute, bCurrentSecond);
             kPrintStringXY( 0, 24, CONSOLESHELL_RUNNINGTIME );
@@ -2518,6 +2520,7 @@ static void kCd( const char* pcParameterBuffer ){
     DWORD dwCluster;
     int i;
     FILE* pstFile;
+    char tmp;
     
     // ÆÄ¶ó¹ÌÅÍ ¸®½ºÆ®¸¦ ÃÊ±âÈ­ÇÏ¿© ÆÄÀÏ ÀÌ¸§À» ÃßÃâ
     kInitializeParameter( &stList, pcParameterBuffer );
@@ -2534,6 +2537,27 @@ static void kCd( const char* pcParameterBuffer ){
     kFindDirectoryEntry(vcDirName, &pstEntry);
 
     setCurrentDir(pstEntry.dwStartClusterIndex);
+
+    if(kMemCmp(vcDirName, ".", kStrLen(vcDirName)) == 0)
+    {
+        ;
+    }
+    else if(kMemCmp(vcDirName, "..", kStrLen(vcDirName)) == 0)
+    {
+        for(int i = kStrLen(vcPath) - 1; i > 0; i--)
+        {
+            tmp = vcPath[i];
+            vcPath[i] = '\0';
+
+            if(tmp == '/')
+                break;
+        }
+    }
+    else {
+        if(kStrLen(vcPath) != 1)
+            vcPath[kStrLen(vcPath)] = '/';
+        kMemCpy( vcPath + kStrLen(vcPath), vcDirName, kStrLen(vcDirName ) );
+    }
     
 }
 

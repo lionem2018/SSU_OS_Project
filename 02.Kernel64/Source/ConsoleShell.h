@@ -17,7 +17,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 #define CONSOLESHELL_MAXCOMMANDBUFFERCOUNT  300
-#define CONSOLESHELL_PROMPTMESSAGE          "MINT64>"
+#define CONSOLESHELL_PROMPTMESSAGE          "MINT64:"
 #define CONSOLESHELL_RUNNINGTIME            "Running Time="
 #define CONSOLESHELL_CURRENTTIME            "Current Time="
 // ���ڿ� �����͸� �Ķ���ͷ�? �޴� �Լ� ������ Ÿ�� ����
