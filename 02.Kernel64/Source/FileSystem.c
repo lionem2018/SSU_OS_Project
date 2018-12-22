@@ -1195,7 +1195,7 @@ DWORD kNewDir(const char* pcFileName){
     // 파일이 먼저 존재하는가 확인하고, 없다면 옵션을 보고 파일을 생성
     //==========================================================================
     iDirectoryEntryOffset = kFindDirectoryEntry( pcFileName, &stEntry );
-    if( iDirectoryEntryOffset == -1 )
+    if( iDirectoryEntryOffset == -1  )
     {
         if( kCreateDir( pcFileName, &stEntry, &iDirectoryEntryOffset ) == FALSE )
         {

@@ -2493,7 +2493,7 @@ static void kFlushCache( const char* pcParameterBuffer )
 
 static void kMkdir( const char* pcParameterBuffer ){
     PARAMETERLIST stList;
-    char vcFileName[ 50 ];
+    char vcDirName[ 50 ];
     int iLength;
     DWORD dwCluster;
     int i;
@@ -2501,15 +2501,23 @@ static void kMkdir( const char* pcParameterBuffer ){
     
     // 파라미터 리스트를 초기화하여 파일 이름을 추출
     kInitializeParameter( &stList, pcParameterBuffer );
-    iLength = kGetNextParameter( &stList, vcFileName );
-    vcFileName[ iLength ] = '\0';
+    iLength = kGetNextParameter( &stList, vcDirName );
+    vcDirName[ iLength ] = '\0';
     if( ( iLength > ( FILESYSTEM_MAXFILENAMELENGTH - 1 ) ) || ( iLength == 0 ) )
     {
         kPrintf( "Too Long or Too Short Dir Name\n" );
         return ;
     }
 
-    kNewDir(vcFileName);
+    DIRECTORYENTRY pstEntry;
+
+    if(kFindDirectoryEntry(vcDirName, &pstEntry)!=-1){
+        kPrintf("Same name directory already exist\n");
+        return;
+    }
+
+
+    kNewDir(vcDirName);
     
 }
 
@@ -2534,7 +2542,15 @@ static void kCd( const char* pcParameterBuffer ){
 
     DIRECTORYENTRY pstEntry;
 
-    kFindDirectoryEntry(vcDirName, &pstEntry);
+    if(kFindDirectoryEntry(vcDirName, &pstEntry)==-1){
+        kPrintf("There is no such Directory\n");
+        return;
+    }
+
+    if(pstEntry.isFile==TRUE){
+        kPrintf("It is not a directory\n");
+        return;
+    }
 
     setCurrentDir(pstEntry.dwStartClusterIndex);
 
@@ -2619,7 +2635,7 @@ static void kRmdir( const char* pcParameterBuffer ){
         return ;
     }
     
-    kPrintf( "File Delete Success\n" );
+    kPrintf( "Directory Delete Success\n" );
 
 
     
