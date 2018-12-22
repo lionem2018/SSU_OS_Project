@@ -2601,7 +2601,10 @@ static void kRmdir( const char* pcParameterBuffer ){
     DIR* pstDirectory;
     int iCount, iTotalCount;
 
-    kFindDirectoryEntry(vcDirName, &pstEntry1);
+    if(kFindDirectoryEntry(vcDirName, &pstEntry1)==-1){
+        kPrintf("No such directory\n");
+        return;
+    }
 
     pstDirectory = opendir( "/", pstEntry1.dwStartClusterIndex );
     if( pstDirectory == NULL )
