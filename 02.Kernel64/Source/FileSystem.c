@@ -141,7 +141,36 @@ BOOL kMount( void )
         pstMBR->dwReservedSectorCount + pstMBR->dwClusterLinkSectorCount + 1;
     gs_stFileSystemManager.dwTotalClusterCount = pstMBR->dwTotalClusterCount;
     
+    DIRECTORYENTRY pstEntry0={0},pstEntry1={0};
 
+    // 디렉터리 엔트리를 설정
+        pstEntry0.vcFileName[0] =  '.';
+        pstEntry0.dwStartClusterIndex = 0;
+        pstEntry0.dwFileSize = 0;
+        pstEntry0.isFile=FALSE;
+    
+        // 디렉터리 엔트리를 등록
+        if( kSetDirectoryEntryData( 0 , &pstEntry0, 0 ) == FALSE )
+        {
+            // 실패할 경우 할당 받은 클러스터를 반환해야 함
+            kUnlock( &( gs_stFileSystemManager.stMutex ) );
+            return FALSE;
+        }
+        
+
+        // 디렉터리 엔트리를 설정
+        pstEntry1.vcFileName[0] = '.';
+        pstEntry1.vcFileName[1] = '.';
+        pstEntry1.dwStartClusterIndex = 0;
+        pstEntry1.dwFileSize = 0;
+        pstEntry1.isFile=FALSE;
+        // 디렉터리 엔트리를 등록
+        if( kSetDirectoryEntryData( 1 , &pstEntry1, 0 ) == FALSE )
+        {
+            // 실패할 경우 할당 받은 클러스터를 반환해야 함
+            kUnlock( &( gs_stFileSystemManager.stMutex ) );
+            return FALSE;
+        }
 
     // 동기화 처리
     kUnlock( &( gs_stFileSystemManager.stMutex ) );
@@ -763,7 +792,7 @@ static int kFindFreeDirectoryEntry( void )
     pstEntry = ( DIRECTORYENTRY* ) gs_vbTempBuffer;
     for( i = 0 ; i < FILESYSTEM_MAXDIRECTORYENTRYCOUNT ; i++ )
     {
-        if( pstEntry[ i ].dwStartClusterIndex == 0 )
+        if( pstEntry[ i ].dwStartClusterIndex == 0 && pstEntry[i].vcFileName[0]==0 )
         {
             return i;
         }
@@ -1782,7 +1811,7 @@ int kRemoveFile( const char* pcFileName )
 /**
  *  디렉터리를 엶
  */
-DIR* kOpenDirectory( const char* pcDirectoryName )
+DIR* kOpenDirectory( const char* pcDirectoryName, int currentCluster )
 {
     DIR* pstDirectory;
     DIRECTORYENTRY* pstDirectoryBuffer;
@@ -1811,7 +1840,7 @@ DIR* kOpenDirectory( const char* pcDirectoryName )
     }
     
     // 루트 디렉터리를 읽음
-    if( kReadCluster( currentDir, ( BYTE* ) pstDirectoryBuffer ) == FALSE )
+    if( kReadCluster( currentCluster, ( BYTE* ) pstDirectoryBuffer ) == FALSE )
     {
         // 실패하면 핸들과 메모리를 모두 반환해야 함
         kFreeFileDirectoryHandle( pstDirectory );
@@ -1998,3 +2027,6 @@ void setCurrentDir(int num){
     currentDir = num;
 }
 
+int getCurrentDir(){
+    return currentDir;
+}

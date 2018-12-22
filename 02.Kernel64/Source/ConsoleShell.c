@@ -67,7 +67,10 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         { "flush", "Flush File System Cache", kFlushCache },
         { "mkdir", "Make New Directory", kMkdir },
         { "cd", "Change Directory", kCd },
-};                                     
+        { "rmdir", "Remove Directory", kRmdir },
+
+};     
+
 
 //==============================================================================
 //  占쏙옙占쏙옙 占쏙옙占쏙옙 占쏙옙占쏙옙占싹댐옙 占쌘듸옙
@@ -1800,7 +1803,7 @@ static void kShowRootDirectory( const char* pcParameterBuffer )
     kGetFileSystemInformation( &stManager );
      
     // 루트 디렉터리를 엶
-    pstDirectory = opendir( "/" );
+    pstDirectory = opendir( "/", getCurrentDir() );
     if( pstDirectory == NULL )
     {
         kPrintf( "Root Directory Open Fail\n" );
@@ -2531,5 +2534,69 @@ static void kCd( const char* pcParameterBuffer ){
     kFindDirectoryEntry(vcDirName, &pstEntry);
 
     setCurrentDir(pstEntry.dwStartClusterIndex);
+    
+}
+
+static void kRmdir( const char* pcParameterBuffer ){
+    PARAMETERLIST stList;
+    char vcDirName[ 50 ];
+    int iLength;
+    DWORD dwCluster;
+    int i;
+    FILE* pstFile;
+    
+    // 파라미터 리스트를 초기화하여 파일 이름을 추출
+    kInitializeParameter( &stList, pcParameterBuffer );
+    iLength = kGetNextParameter( &stList, vcDirName );
+    vcDirName[ iLength ] = '\0';
+    if( ( iLength > ( FILESYSTEM_MAXFILENAMELENGTH - 1 ) ) || ( iLength == 0 ) )
+    {
+        kPrintf( "Too Long or Too Short Dir Name\n" );
+        return ;
+    }
+
+    DIRECTORYENTRY pstEntry1;
+
+    struct dirent* pstEntry;
+    DIR* pstDirectory;
+    int iCount, iTotalCount;
+
+    kFindDirectoryEntry(vcDirName, &pstEntry1);
+
+    pstDirectory = opendir( "/", pstEntry1.dwStartClusterIndex );
+    if( pstDirectory == NULL )
+    {
+        kPrintf( "Directory Open Fail\n" );
+        return ;
+    }
+    
+    // 먼저 루프를 돌면서 디렉터리에 있는 파일의 개수와 전체 파일이 사용한 크기를 계산
+    iTotalCount = 0;
+    while( 1 )
+    {
+        // 디렉터리에서 엔트리 하나를 읽음
+        pstEntry = readdir( pstDirectory );
+        // 더이상 파일이 없으면 나감
+        if( pstEntry == NULL )
+        {
+            break;
+        }
+        iTotalCount++;
+    }
+    
+    if(iTotalCount!=2){
+        kPrintf("There are files left in the directory\n");
+        return;
+    }
+
+    if( remove( vcDirName ) != 0 )
+    {
+        kPrintf( "File Not Found or File Opened\n" );
+        return ;
+    }
+    
+    kPrintf( "File Delete Success\n" );
+
+
     
 }

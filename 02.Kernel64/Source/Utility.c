@@ -499,3 +499,4 @@ QWORD rand(void){
     gs_qwRandomValue = (gs_qwRandomValue * 412153 + 5571031) >> 16;
     return gs_qwRandomValue;
 }
+

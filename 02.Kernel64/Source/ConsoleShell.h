@@ -118,4 +118,5 @@ static void kTestFreeList( const char* pcParameterBuffer );
 
 static void kMkdir( const char* pcParameterBuffer );
 static void kCd( const char* pcParameterBuffer );
+static void kRmdir( const char* pcParameterBuffer );
 #endif /*__CONSOLESHELL_H__*/

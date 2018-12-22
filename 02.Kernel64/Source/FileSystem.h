@@ -262,7 +262,7 @@ DWORD kWriteFile( const void* pvBuffer, DWORD dwSize, DWORD dwCount, FILE* pstFi
 int kSeekFile( FILE* pstFile, int iOffset, int iOrigin );
 int kCloseFile( FILE* pstFile );
 int kRemoveFile( const char* pcFileName );
-DIR* kOpenDirectory( const char* pcDirectoryName );
+DIR* kOpenDirectory( const char* pcDirectoryName, int currentCluster );
 struct kDirectoryEntryStruct* kReadDirectory( DIR* pstDirectory );
 void kRewindDirectory( DIR* pstDirectory );
 int kCloseDirectory( DIR* pstDirectory );
@@ -277,5 +277,7 @@ static BOOL kCreateDir( const char* pcFileName, DIRECTORYENTRY* pstEntry,
         int* piDirectoryEntryIndex );
 static BOOL kFreeClusterUntilEnd( DWORD dwClusterIndex );
 static BOOL kUpdateDirectoryEntry( FILEHANDLE* pstFileHandle );
+
+int getCurrentDir();
 
 #endif /*__FILESYSTEM_H__*/
